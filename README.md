@@ -88,3 +88,34 @@ $ aws lambda update-function-code \
      lambda-rs-output.json
    $ cat lambda-rs-output.json
    ```
+
+# Clean Up
+
+- Delete lambda:
+
+  ```bash
+  $ aws lambda delete-function \
+    --function-name lambda-rs \
+    --region <aws-region> \
+    --profile <aws-profile-name>
+  ```
+
+- Delete Lambda role:
+
+  ```bash
+  $ aws lambda delete-function \
+    --function-name lambda-rs \
+    --region <aws-region> \
+    --profile <aws-profile-name>
+
+  $ aws iam detach-role-policy \
+    --role-name lambda-rs-role \
+    --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole \
+    --region <aws-region> \
+    --profile <aws-profile-name>
+
+  $ aws iam delete-role \
+    --role-name lambda-rs-role \
+    --region <aws-region> \
+    --profile <aws-profile-name>
+  ```
