@@ -37,12 +37,30 @@
 
 ## Deploy to AWS
 
+1. (First time action) Create Table:
+
+   ```bash
+   $ aws dynamodb create-table \
+    --table-name Users \
+    --attribute-definitions AttributeName=uuid,AttributeType=S \
+    --key-schema AttributeName=uuid,KeyType=HASH \
+    --billing-mode PAY_PER_REQUEST \
+    --region <aws-region> \
+    --profile <aws-profile-name>
+   ```
+
 1. (First time action) Create Lambda execution role:
 
    ```bash
    $ aws iam create-role \
       --role-name lambda-rs-role \
       --assume-role-policy-document '{"Version": "2012-10-17","Statement": [{ "Effect": "Allow", "Principal": {"Service": "lambda.amazonaws.com"}, "Action": "sts:AssumeRole"}]}' \
+      --region <aws-region> \
+      --profile <aws-profile-name>
+   $ export TABLE_ARN=$(aws dynamodb describe-table --table-name Users --query "Table.TableArn" --region <aws-region> --profile <aws-profile-name>) &&
+      aws iam create-policy \
+      --policy-name users-table-access \
+      --policy-document "{\"Version\": \"2012-10-17\", \"Statement\": [{ \"Sid\": \"FullTableAccess\", \"Effect\": \"Allow\", \"Action\": \"dynamodb:*\", \"Resource\": $TABLE_ARN},{\"Sid\": \"CreateLogGroup\",\"Effect\": \"Allow\",\"Action\": \"logs:CreateLogGroup\",\"Resource\": \"*\"}]}" \
       --region <aws-region> \
       --profile <aws-profile-name>
    ```
@@ -55,11 +73,14 @@
       --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole \
       --region <aws-region> \
       --profile <aws-profile-name>
+   $ aws iam attach-role-policy \
+      --role-name lambda-rs-role \
+      --policy-arn $(aws iam list-policies --query 'Policies[?PolicyName==`users-table-access`].Arn' --output text --region <aws-region> --profile <aws-profile-name>) \
+      --region <aws-region> \
+      --profile <aws-profile-name>
    ```
 
-   ``
-
-2. (First time action) Create Lambda
+1. (First time action) Create Lambda
 
    ```bash
    $ aws lambda create-function --function-name lambda-rs \
@@ -67,14 +88,14 @@
        --zip-file fileb://./target/lambda/lambda-rs/bootstrap.zip \
        --runtime provided.al2 \
        --role $(aws iam get-role --role-name lambda-rs-role --profile cc --query 'Role.Arn' | tr -d \") \
-       --environment "Variables={RUST_BACKTRACE=1,TABLE_NAME=my-table,TABLE_REGION=us-west-2}" \
+       --environment "Variables={RUST_BACKTRACE=1,TABLE_NAME=Users,TABLE_REGION=us-west-2}" \
        --architectures "x86_64" \
        --tracing-config Mode=Active \
        --region <aws-region> \
        --profile <aws-profile-name>
    ```
 
-3. Update Lambda code:
+1. Update Lambda code:
 
 ```bash
 $ aws lambda update-function-code \
@@ -84,7 +105,7 @@ $ aws lambda update-function-code \
     --profile <aws-profile-name>
 ```
 
-3. (Optional) Test lambda invocation:
+1. (Optional) Test lambda invocation:
 
    ```bash
    $ aws lambda invoke \
@@ -119,6 +140,17 @@ $ aws lambda update-function-code \
   $ aws iam detach-role-policy \
     --role-name lambda-rs-role \
     --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole \
+    --region <aws-region> \
+    --profile <aws-profile-name>
+
+  $ export POLICY_ARN=$(aws iam list-policies --query 'Policies[?PolicyName==`users-table-access`].Arn' --output text --region <aws-region> --profile <aws-profile-name>)
+    aws iam detach-role-policy \
+    --role-name lambda-rs-role \
+    --policy-arn $POLICY_ARN \
+    --region <aws-region> \
+    --profile <aws-profile-name>
+  $ aws iam delete-policy \
+    --policy-arn $POLICY_ARN \
     --region <aws-region> \
     --profile <aws-profile-name>
 
