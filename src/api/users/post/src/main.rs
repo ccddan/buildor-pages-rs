@@ -8,12 +8,22 @@ use std::env;
 use uuid::Uuid;
 
 #[tokio::main]
-async fn main() -> Result<(), LambdaError> {
+async fn main() -> Result<(), Value> {
     println!("Creating service fn for handler");
     let func = service_fn(handler);
     println!("Executing handler from runtime");
-    lambda_runtime::run(func).await?;
-    Ok(())
+    let result = lambda_runtime::run(func).await;
+    println!("Evaluating handler result");
+    match result {
+        Ok(res) => {
+            println!("Success");
+            Ok(res)
+        }
+        Err(err) => {
+            println!("Handler exception: {}", err);
+            Err(json!({ "error": format!("Internal error: {}", err) }))
+        }
+    }
 }
 
 #[derive(Deserialize, Debug)]
@@ -22,29 +32,39 @@ struct EventPayload {
     pub lname: String,
 }
 
-async fn handler(event: LambdaEvent<EventPayload>) -> Result<Value, LambdaError> {
+async fn handler(event: LambdaEvent<Value>) -> Result<Value, LambdaError> {
     println!("Start handler execution");
 
     println!("Load env vars");
     #[allow(non_snake_case)]
-    let TABLE_NAME = env::var("TABLE_NAME").unwrap();
+    let TABLE_NAME = env::var("TABLE_NAME")?;
     #[allow(non_snake_case)]
-    let TABLE_REGION: String = env::var("TABLE_REGION").unwrap();
+    let TABLE_REGION: String = env::var("TABLE_REGION")?;
     println!("TABLE_NAME: {}", TABLE_NAME);
     println!("TABLE_REGION: {}", TABLE_REGION);
 
     println!("Parse event and context objects");
-    let (event, _context) = event.into_parts();
+    let (event, context) = event.into_parts();
     println!("event: {:?}", event);
+    println!("context: {:?}", context);
 
-    // let region_provider = RegionProviderChain::default_provider().or_else("us-west-2");
+    println!("Parse body payload");
+    let body: EventPayload;
+    match serde_json::from_value::<EventPayload>(event) {
+        Ok(valid) => body = valid,
+        Err(err) => {
+            println!("Body payload not compliant: {}", err);
+            return Ok(json!({ "error": format!("{}", err) }));
+        }
+    }
+
     let config = aws_config::load_from_env().await;
     let table = DynamoClient::new(&config);
 
     println!("Extracting/Creating values to store in DB");
     let uuid = Uuid::new_v4().to_string();
-    let fname = String::from(event.fname);
-    let lname = String::from(event.lname);
+    let fname = String::from(body.fname);
+    let lname = String::from(body.lname);
     println!("uuid = {}", uuid);
     println!("fname = {}", fname);
     println!("lname = {}", lname);

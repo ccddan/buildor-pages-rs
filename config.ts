@@ -1,0 +1,38 @@
+if (!process.env.APP_ENV || process.env.APP_ENV == "development") {
+  require("dotenv").config();
+}
+
+const DEFAULT = "not-defined";
+const APP_PREFIX = "App";
+const _name = (name: string) => `${APP_PREFIX}${name}`;
+
+const config = {
+  app: {
+    name: _name,
+    prefix: APP_PREFIX,
+  },
+  aws: {
+    region: DEFAULT,
+    account: DEFAULT,
+  },
+  ssm: {
+    tables: {
+      users: {
+        tableArn: `/${APP_PREFIX}/tables/users/tableArn`,
+        streamArn: `/${APP_PREFIX}/tables/users/streamArn`,
+      },
+    },
+  },
+};
+
+if (!process.env.AWS_REGION) {
+  throw new Error("AWS_REGION env var is required");
+}
+if (!process.env.AWS_ACCOUNT) {
+  throw new Error("AWS_ACCOUNT env var is required");
+}
+
+config.aws.region = process.env.AWS_REGION;
+config.aws.account = process.env.AWS_ACCOUNT;
+
+export default config;
