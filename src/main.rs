@@ -1,6 +1,6 @@
 // use aws_config::meta::region::RegionProviderChain;
-// use aws_sdk_dynamodb::model::AttributeValue;
-// use aws_sdk_dynamodb::Client as DynamoClient;
+use aws_sdk_dynamodb::model::AttributeValue;
+use aws_sdk_dynamodb::Client as DynamoClient;
 use lambda_runtime::{service_fn, Error as LambdaError, LambdaEvent};
 use serde::Deserialize;
 use serde_json::{json, Value};
@@ -38,8 +38,8 @@ async fn handler(event: LambdaEvent<EventPayload>) -> Result<Value, LambdaError>
     println!("event: {:?}", event);
 
     // let region_provider = RegionProviderChain::default_provider().or_else("us-west-2");
-    // let config = aws_config::from_env().region(region_provider).load().await;
-    // let table = DynamoClient::new(&config);
+    let config = aws_config::load_from_env().await;
+    let table = DynamoClient::new(&config);
 
     println!("Extracting/Creating values to store in DB");
     let uuid = Uuid::new_v4().to_string();
@@ -49,16 +49,30 @@ async fn handler(event: LambdaEvent<EventPayload>) -> Result<Value, LambdaError>
     println!("fname = {}", fname);
     println!("lname = {}", lname);
 
-    // let tx = table
-    //     .put_item()
-    //     .table_name("users")
-    //     .item("uuid", AttributeValue::S(uuid))
-    //     .item("fname", AttributeValue::S(fname.to_string()))
-    //     .item("lname", AttributeValue::S(lname.to_string()));
+    println!("Preparing to insert new record in db");
+    let tx = table
+        .put_item()
+        .table_name(TABLE_NAME)
+        .item("uuid", AttributeValue::S(uuid))
+        .item("fname", AttributeValue::S(fname.to_string()))
+        .item("lname", AttributeValue::S(lname.to_string()));
 
-    // tx.send().await?;
+    println!("Send transaction");
+    let result = tx.send().await;
+    println!("Tx response: {:?}", result);
 
-    Ok(json!({
-        "message": format!("{} {}, your request has been processed", fname, lname)
-    }))
+    match result {
+        Ok(res) => {
+            println!("New record created: {:?}", res);
+            Ok(json!({
+                "message": format!("{} {}, your request has been processed", fname, lname)
+            }))
+        }
+        Err(err) => {
+            println!("Failed to create record: {}", err);
+            Ok(json!({
+                "error": format!("Failed to create record: {}", err)
+            }))
+        }
+    }
 }
