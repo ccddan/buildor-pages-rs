@@ -23,6 +23,8 @@ export class APIDeploymentStack extends Stack {
       config.app.name(`ApiDeployment-${config.api.version}`),
       { api }
     );
+    deployment.addToLogicalId(new Date().getTime()); // force deployment to update
+
     const logsGroup = new LogGroup(
       this,
       config.app.name(`ApiLogs-${config.api.version}`),
