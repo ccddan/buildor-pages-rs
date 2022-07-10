@@ -15,7 +15,7 @@
 ```bash
 $ npm install
 $ rustup target add x86_64-unknown-linux-gnu
-$ cargo install cargo-lambda
+$ cargo install cargo-lambda --version=0.9.0
 ```
 
 Compile Rust code:
