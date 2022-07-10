@@ -15,7 +15,18 @@ const config = {
     region: DEFAULT,
     account: DEFAULT,
   },
+  api: {
+    version: "v1",
+  },
   ssm: {
+    api: {
+      id: `/${APP_PREFIX}/api/id`,
+      resources: {
+        root: {
+          id: `/${APP_PREFIX}/api/resources/root/id`,
+        },
+      },
+    },
     tables: {
       users: {
         tableArn: `/${APP_PREFIX}/tables/users/tableArn`,

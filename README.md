@@ -48,15 +48,17 @@ $ npm run build:api
    $ npm run cdk -- deploy $(echo $APP_PREFIX)TablesStack --toolkit-stack-name $(echo $APP_PREFIX)Toolkit --profile <name>
    ```
 
-1. Deploy Lambdas:
+1. Deploy API:
 
    ```bash
-   $ npm run cdk -- deploy $(echo $APP_PREFIX)APIUsersStack --require-approval never --toolkit-stack-name $(echo $APP_PREFIX)Toolkit --profile cc
+   $ npm run cdk -- deploy $(echo $APP_PREFIX)APIStack --require-approval never --toolkit-stack-name $(echo $APP_PREFIX)Toolkit --profile <name>
+   $ npm run cdk -- deploy $(echo $APP_PREFIX)APIUsersStack --force --require-approval never --toolkit-stack-name $(echo $APP_PREFIX)Toolkit --profile <name>
    ```
 
 ## Clean Up
 
 ```bash
-$ npm run cdk -- destroy --force $(echo $APP_PREFIX)TablesStack --profile <name>
-$ npm run cdk -- destroy --force $(echo $APP_PREFIX)APIUsersStack --profile <name>
+$ npm run cdk -- destroy --force $(echo $APP_PREFIX)TablesStack --toolkit-stack-name $(echo $APP_PREFIX)Toolkit --profile <name>
+$ npm run cdk -- destroy --force $(echo $APP_PREFIX)APIUsersStack --toolkit-stack-name $(echo $APP_PREFIX)Toolkit --profile <name>
+$ npm run cdk -- destroy --force $(echo $APP_PREFIX)APIStack --toolkit-stack-name $(echo $APP_PREFIX)Toolkit --profile <name>
 ```
