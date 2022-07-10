@@ -24,8 +24,6 @@ Compile Rust code:
 $ npm run build:api
 ```
 
-> **IMPORTANT:** when you build the project for the first time you might be asked to install Zig using Python or NodeJS. Select NodeJs and continue with the installation.
-
 ### Infrastructure
 
 1. Prepare env vars:
