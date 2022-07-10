@@ -1,2 +1,7 @@
 [workspace]
-members = ["src/layers/buildor", "src/api/root/any", "src/api/users/post"]
+members = [
+  "src/layers/buildor",
+  "src/api/root/any",
+  "src/api/users/post",
+  "src/api/users/list",
+]

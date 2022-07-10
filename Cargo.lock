@@ -25,6 +25,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "api-users-list"
+version = "0.1.0"
+dependencies = [
+ "aws-config",
+ "aws-sdk-dynamodb",
+ "buildor",
+ "lambda_runtime",
+ "log",
+ "serde",
+ "serde_derive",
+ "serde_json",
+ "tokio",
+ "tokio-stream",
+]
+
+[[package]]
 name = "api-users-post"
 version = "0.1.0"
 dependencies = [
