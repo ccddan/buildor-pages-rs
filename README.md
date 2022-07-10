@@ -53,6 +53,7 @@ $ npm run build:api
    ```bash
    $ npm run cdk -- deploy $(echo $APP_PREFIX)APIStack --require-approval never --toolkit-stack-name $(echo $APP_PREFIX)Toolkit --profile <name>
    $ npm run cdk -- deploy $(echo $APP_PREFIX)APIUsersStack --force --require-approval never --toolkit-stack-name $(echo $APP_PREFIX)Toolkit --profile <name>
+   $ npm run cdk -- deploy $(echo $APP_PREFIX)APIDeploymentStack --require-approval never --toolkit-stack-name $(echo $APP_PREFIX)Toolkit --profile <name>
    ```
 
 ## Clean Up

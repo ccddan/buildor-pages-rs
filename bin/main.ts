@@ -2,6 +2,7 @@
 
 import "source-map-support/register";
 
+import { APIDeploymentStack } from "../lib/api/api-deployment-stack";
 import { APIStack } from "../lib/api/api-stack";
 import { APIUsersStack } from "../lib/api/api-users-stack";
 import { App } from "aws-cdk-lib";
@@ -26,3 +27,9 @@ const apiStack = new APIStack(app, config.app.name("APIStack"), {
 const apiUsersStack = new APIUsersStack(app, config.app.name("APIUsersStack"), {
   env,
 });
+
+const apiDeploymentStack = new APIDeploymentStack(
+  app,
+  config.app.name("APIDeploymentStack"),
+  { env }
+);

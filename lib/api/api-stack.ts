@@ -35,12 +35,7 @@ export class APIStack extends OutputStack {
       endpointTypes: [EndpointType.REGIONAL],
       disableExecuteApiEndpoint: false, // TODO: change once domain is configured
       minimumCompressionSize: 0,
-      deploy: true,
-      deployOptions: {
-        loggingLevel: MethodLoggingLevel.INFO,
-        dataTraceEnabled: true,
-        stageName: config.api.version,
-      },
+      deploy: false,
       defaultCorsPreflightOptions: {
         allowOrigins: ["*"],
         statusCode: 200,
