@@ -28,16 +28,11 @@ dependencies = [
 name = "api-users-list"
 version = "0.1.0"
 dependencies = [
- "aws-config",
- "aws-sdk-dynamodb",
  "buildor",
  "lambda_runtime",
  "log",
- "serde",
- "serde_derive",
  "serde_json",
  "tokio",
- "tokio-stream",
 ]
 
 [[package]]
@@ -379,9 +374,13 @@ checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 name = "buildor"
 version = "0.1.0"
 dependencies = [
+ "aws-config",
+ "aws-sdk-dynamodb",
+ "log",
  "serde",
  "serde_derive",
  "serde_json",
+ "tokio-stream",
 ]
 
 [[package]]
