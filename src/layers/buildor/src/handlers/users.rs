@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::models::user::User;
+use crate::models::user::{User, UserCreatePayload};
 use aws_sdk_dynamodb::types::SdkError;
 use aws_sdk_dynamodb::Client;
 use aws_sdk_dynamodb::{error::ScanError, model::AttributeValue};
@@ -30,6 +30,34 @@ pub struct UsersHandler {
 impl UsersHandler {
     pub fn new(table: Client, table_name: String) -> Self {
         UsersHandler { table, table_name }
+    }
+
+    pub async fn create(self, payload: UserCreatePayload) -> Option<User> {
+        println!("UserHandler::create - payload: {:?}", payload);
+        let user = User::new(payload);
+
+        let tx = self
+            .table
+            .put_item()
+            .table_name(self.table_name)
+            .item("uuid", AttributeValue::S(user.uuid.to_string()))
+            .item("fname", AttributeValue::S(user.fname.to_string()))
+            .item("lname", AttributeValue::S(user.lname.to_string()));
+
+        println!("UserHandler::create - send tx");
+        let result = tx.send().await;
+        println!("UserHandler::create - tx response: {:?}", result);
+
+        match result {
+            Ok(res) => {
+                println!("UserHandler::create - New user created: {:?}", res);
+                Some(user)
+            }
+            Err(err) => {
+                println!("UserHandler::create - Failed to create user: {:?}", err);
+                None
+            }
+        }
     }
 
     pub async fn list(self) -> Vec<User> {
