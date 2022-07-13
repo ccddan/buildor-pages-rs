@@ -5,14 +5,15 @@ import {
   MethodLoggingLevel,
   Stage,
 } from "aws-cdk-lib/aws-apigateway";
-import { Stack, StackProps } from "aws-cdk-lib";
 
 import { APIStack } from "./api-stack";
 import { Construct } from "constructs";
 import { LogGroup } from "aws-cdk-lib/aws-logs";
+import { OutputStack } from "../utils/output-stack";
+import { StackProps } from "aws-cdk-lib";
 import config from "../../config";
 
-export class APIDeploymentStack extends Stack {
+export class APIDeploymentStack extends OutputStack {
   constructor(scope: Construct, id: string, props: StackProps) {
     super(scope, id, props);
 
@@ -35,24 +36,34 @@ export class APIDeploymentStack extends Stack {
       }
     );
 
-    new Stage(this, config.app.name(`ApiStage-${config.api.version}`), {
-      stageName: config.api.version,
-      deployment,
-      dataTraceEnabled: true,
-      tracingEnabled: true,
-      loggingLevel: MethodLoggingLevel.INFO,
-      accessLogDestination: new LogGroupLogDestination(logsGroup),
-      accessLogFormat: AccessLogFormat.jsonWithStandardFields({
-        caller: true,
-        httpMethod: true,
-        ip: true,
-        protocol: true,
-        requestTime: true,
-        resourcePath: true,
-        responseLength: true,
-        status: true,
-        user: true,
-      }),
-    });
+    const stage = new Stage(
+      this,
+      config.app.name(`ApiStage-${config.api.version}`),
+      {
+        stageName: config.api.version,
+        deployment,
+        dataTraceEnabled: true,
+        tracingEnabled: true,
+        loggingLevel: MethodLoggingLevel.INFO,
+        accessLogDestination: new LogGroupLogDestination(logsGroup),
+        accessLogFormat: AccessLogFormat.jsonWithStandardFields({
+          caller: true,
+          httpMethod: true,
+          ip: true,
+          protocol: true,
+          requestTime: true,
+          resourcePath: true,
+          responseLength: true,
+          status: true,
+          user: true,
+        }),
+      }
+    );
+
+    this.output(
+      config.app.name("APIEndpoint"),
+      config.app.name("APIEndpoint"),
+      stage.urlForPath("/")
+    );
   }
 }
