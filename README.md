@@ -54,6 +54,18 @@ $ npm run build:api
    $ npm run cdk -- deploy $(echo $APP_PREFIX)APIDeploymentStack --require-approval never --toolkit-stack-name $(echo $APP_PREFIX)Toolkit --profile <name>
    ```
 
+1. Test API Endpoints:
+
+Once the APIDeploymentStack is deployed, you should be able to see the API URL in the command logs. Use that URL in the following commands:
+
+```bash
+# List users
+$ curl -vvv <API_URL>/users
+
+# Register a new user
+$ curl -vvv <API_URL>/users -d '{"fname": "John", "lname": "Doe"}'
+```
+
 ## Clean Up
 
 ```bash
