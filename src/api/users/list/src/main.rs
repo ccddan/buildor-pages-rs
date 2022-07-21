@@ -73,10 +73,6 @@ async fn handler(event: LambdaEvent<Value>) -> Result<Value, Report<ExecutionErr
     println!("TABLE_NAME: {}", TABLE_NAME);
     println!("TABLE_REGION: {}", TABLE_REGION);
 
-    #[allow(non_snake_case)]
-    let UNDEFINED_VAR = load_env_var("UNDEFINED_VAR").change_context(ExecutionError)?;
-    println!("UNDEFINED_VAR: {}", UNDEFINED_VAR);
-
     println!("Parse event and context objects");
     let (event, context) = event.into_parts();
     println!("event: {:?}", event);
