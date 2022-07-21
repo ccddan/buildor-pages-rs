@@ -1,14 +1,17 @@
 use buildor::{
     handlers::users::UsersHandler,
-    models::{response::Response, user::UserCreatePayload},
-    utils::get_table_client,
+    models::{common::ExecutionError, response::Response, user::UserCreatePayload},
+    utils::{get_table_client, load_env_var},
 };
-use lambda_runtime::{service_fn, Error as LambdaError, LambdaEvent};
+use error_stack::{Report, ResultExt};
+use lambda_runtime::{service_fn, LambdaEvent};
 use serde_json::{json, Value};
-use std::{borrow::Cow, env};
+use std::borrow::Cow;
 
 #[tokio::main]
 async fn main() -> Result<(), Value> {
+    env_logger::init();
+
     println!("Creating service fn for handler");
     let func = service_fn(handler);
     println!("Executing handler from runtime");
@@ -21,19 +24,19 @@ async fn main() -> Result<(), Value> {
         }
         Err(err) => {
             println!("Handler exception: {}", err);
-            Err(json!({ "error": format!("Internal error: {}", err) }))
+            Err(json!({ "error": "Internal server error" }))
         }
     }
 }
 
-async fn handler(event: LambdaEvent<Value>) -> Result<Value, LambdaError> {
+async fn handler(event: LambdaEvent<Value>) -> Result<Value, Report<ExecutionError>> {
     println!("Start handler execution");
 
     println!("Load env vars");
     #[allow(non_snake_case)]
-    let TABLE_NAME = env::var("TABLE_NAME")?;
+    let TABLE_NAME = load_env_var("TABLE_NAME").change_context(ExecutionError)?;
     #[allow(non_snake_case)]
-    let TABLE_REGION: String = env::var("TABLE_REGION")?;
+    let TABLE_REGION = load_env_var("TABLE_REGION").change_context(ExecutionError)?;
     println!("TABLE_NAME: {}", TABLE_NAME);
     println!("TABLE_REGION: {}", TABLE_REGION);
 

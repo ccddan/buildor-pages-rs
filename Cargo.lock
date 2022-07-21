@@ -42,6 +42,8 @@ name = "api-users-post"
 version = "0.1.0"
 dependencies = [
  "buildor",
+ "env_logger",
+ "error-stack",
  "lambda_runtime",
  "log",
  "serde_json",
