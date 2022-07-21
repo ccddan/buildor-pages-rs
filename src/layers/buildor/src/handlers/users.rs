@@ -50,11 +50,11 @@ impl UsersHandler {
 
         match result {
             Ok(res) => {
-                println!("UserHandler::create - New user created: {:?}", res);
+                println!("UserHandler::create - new user created: {:?}", res);
                 Some(user)
             }
             Err(err) => {
-                println!("UserHandler::create - Failed to create user: {:?}", err);
+                println!("UserHandler::create - failed to create user: {:?}", err);
                 None
             }
         }
@@ -63,28 +63,28 @@ impl UsersHandler {
     pub async fn list(self) -> Vec<User> {
         let mut data = Vec::new();
 
-        println!("Preparing to insert new record in db");
+        println!("UserHandler::list - preparing query to list users");
         let tx = self
             .table
             .scan()
             .table_name(self.table_name)
             .into_paginator()
             .items();
-        println!("Send transaction");
+        println!("UserHandler::list - send tx");
         let result: Result<Vec<_>, SdkError<ScanError>> = tx.send().collect().await;
-        println!("Tx response: {:?}", result);
+        println!("UserHandler::list - tx response: {:?}", result);
 
         match result {
             Ok(res) => {
-                println!("Parse users records");
+                println!("UserHandler::list - parse users");
                 for item in res {
                     let user = UsersParser::user(item);
-                    println!("user: {:?}", user);
+                    println!("UserHandler::list - user: {:?}", user);
                     data.push(user);
                 }
             }
             Err(err) => {
-                println!("Failed to list users: {}", err);
+                println!("UserHandler::list - failed to list users: {}", err);
             }
         }
 
