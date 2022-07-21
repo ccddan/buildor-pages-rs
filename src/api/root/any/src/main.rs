@@ -1,4 +1,4 @@
-use buildor::models::response::Response;
+use buildor::models::{request::RequestError, response::Response};
 use lambda_runtime::{service_fn, Error as LambdaError, LambdaEvent};
 use serde_json::{json, Value};
 
@@ -16,7 +16,7 @@ async fn main() -> Result<(), Value> {
         }
         Err(err) => {
             println!("Handler exception: {}", err);
-            Err(json!({ "error": format!("Internal error: {}", err) }))
+            Err(json!(RequestError::internal()))
         }
     }
 }
