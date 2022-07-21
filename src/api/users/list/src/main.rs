@@ -8,14 +8,22 @@ use error_stack::{Context, Report, ResultExt};
 use std::fmt;
 
 #[derive(Debug)]
-struct MissingRequiredEnvVarError;
-impl fmt::Display for MissingRequiredEnvVarError {
-    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt.write_str(format!("Missing required env var").as_str())
+struct RequiredEnvVarError {
+    pub name: String,
+}
+impl RequiredEnvVarError {
+    pub fn new(name: &str) -> Self {
+        Self {
+            name: String::from(name),
+        }
     }
 }
-impl Context for MissingRequiredEnvVarError {}
-// impl Error for MissingRequiredEnvVarError {}
+impl fmt::Display for RequiredEnvVarError {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt.write_str(format!("Missing required env var: {}", self.name).as_str())
+    }
+}
+impl Context for RequiredEnvVarError {}
 
 #[derive(Debug)]
 struct ExecutionError;
@@ -26,12 +34,9 @@ impl fmt::Display for ExecutionError {
 }
 impl Context for ExecutionError {}
 
-fn load_env_var(name: &str) -> Result<String, Report<MissingRequiredEnvVarError>> {
-    let value = std::env::var(name).or_else(|_| {
-        Err(Report::new(MissingRequiredEnvVarError))
-        // .change_context(MissingRequiredEnvVarError)
-        // .attach_printable("{name}"))
-    })?;
+fn load_env_var(name: &str) -> Result<String, Report<RequiredEnvVarError>> {
+    let value =
+        std::env::var(name).or_else(|_| Err(Report::new(RequiredEnvVarError::new(name))))?;
 
     Ok(value)
 }
