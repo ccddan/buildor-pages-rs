@@ -1,6 +1,8 @@
 use error_stack::Context;
 use std::fmt;
 
+use super::request::RequestError;
+
 #[derive(Debug)]
 pub struct RequiredEnvVarError {
     pub name: String,
@@ -27,3 +29,14 @@ impl fmt::Display for ExecutionError {
     }
 }
 impl Context for ExecutionError {}
+
+pub struct CommonError;
+impl CommonError {
+    pub fn schema_compliant(details: String) -> RequestError {
+        RequestError {
+            code: "CME00".to_string(),
+            message: "Schema Compliant Error".to_string(),
+            details,
+        }
+    }
+}

@@ -1,6 +1,11 @@
 use buildor::{
     handlers::users::UsersHandler,
-    models::{common::ExecutionError, response::Response, user::UserCreatePayload},
+    models::{
+        common::{CommonError, ExecutionError},
+        request::RequestError,
+        response::Response,
+        user::{UserCreatePayload, UserError},
+    },
     utils::{get_table_client, load_env_var},
 };
 use error_stack::{Report, ResultExt};
@@ -24,7 +29,7 @@ async fn main() -> Result<(), Value> {
         }
         Err(err) => {
             println!("Handler exception: {}", err);
-            Err(json!({ "error": "Internal server error" }))
+            Err(json!(RequestError::internal()))
         }
     }
 }
@@ -54,7 +59,12 @@ async fn handler(event: LambdaEvent<Value>) -> Result<Value, Report<ExecutionErr
         Ok(valid) => body = valid,
         Err(err) => {
             println!("Body payload not compliant: {}", err);
-            return Ok(json!({ "error": format!("{}", err) }));
+            return Ok(Response::new(
+                json!(CommonError::schema_compliant(
+                    format!("Body payload not compliant: {}", err).to_string()
+                )),
+                400,
+            ));
         }
     }
 
@@ -64,9 +74,6 @@ async fn handler(event: LambdaEvent<Value>) -> Result<Value, Report<ExecutionErr
 
     match user {
         Some(user) => Ok(Response::new(json!(user), 200)),
-        None => Ok(Response::new(
-            json!({ "error": format!("Failed to create user, try again.") }),
-            400,
-        )),
+        None => Ok(Response::new(json!(UserError::creation_failed()), 400)),
     }
 }

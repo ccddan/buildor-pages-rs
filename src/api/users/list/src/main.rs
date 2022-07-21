@@ -1,6 +1,6 @@
 use buildor::{
     handlers::users::UsersHandler,
-    models::{common::ExecutionError, response::Response},
+    models::{common::ExecutionError, request::RequestError, response::Response},
     utils::{get_table_client, load_env_var},
 };
 use error_stack::{Report, ResultExt};
@@ -23,7 +23,7 @@ async fn main() -> Result<(), Value> {
         }
         Err(err) => {
             println!("Handler exception: {}", err);
-            Err(json!({ "error": "Internal server error" }))
+            Err(json!(RequestError::internal()))
         }
     }
 }
