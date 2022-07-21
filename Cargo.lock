@@ -384,6 +384,8 @@ version = "0.1.0"
 dependencies = [
  "aws-config",
  "aws-sdk-dynamodb",
+ "env_logger",
+ "error-stack",
  "log",
  "serde",
  "serde_derive",

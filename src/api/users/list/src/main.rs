@@ -1,45 +1,11 @@
-use buildor::handlers::users::UsersHandler;
-use buildor::models::response::Response;
-use buildor::utils::get_table_client;
+use buildor::{
+    handlers::users::UsersHandler,
+    models::{common::ExecutionError, response::Response},
+    utils::{get_table_client, load_env_var},
+};
+use error_stack::{Report, ResultExt};
 use lambda_runtime::{service_fn, LambdaEvent};
 use serde_json::{json, Value};
-
-use error_stack::{Context, Report, ResultExt};
-use std::fmt;
-
-#[derive(Debug)]
-struct RequiredEnvVarError {
-    pub name: String,
-}
-impl RequiredEnvVarError {
-    pub fn new(name: &str) -> Self {
-        Self {
-            name: String::from(name),
-        }
-    }
-}
-impl fmt::Display for RequiredEnvVarError {
-    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt.write_str(format!("Missing required env var: {}", self.name).as_str())
-    }
-}
-impl Context for RequiredEnvVarError {}
-
-#[derive(Debug)]
-struct ExecutionError;
-impl fmt::Display for ExecutionError {
-    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt.write_str(format!("Execution error").as_str())
-    }
-}
-impl Context for ExecutionError {}
-
-fn load_env_var(name: &str) -> Result<String, Report<RequiredEnvVarError>> {
-    let value =
-        std::env::var(name).or_else(|_| Err(Report::new(RequiredEnvVarError::new(name))))?;
-
-    Ok(value)
-}
 
 #[tokio::main]
 async fn main() -> Result<(), Value> {
@@ -57,7 +23,7 @@ async fn main() -> Result<(), Value> {
         }
         Err(err) => {
             println!("Handler exception: {}", err);
-            Err(json!({ "error": format!("Internal server error") }))
+            Err(json!({ "error": "Internal server error" }))
         }
     }
 }
@@ -67,9 +33,9 @@ async fn handler(event: LambdaEvent<Value>) -> Result<Value, Report<ExecutionErr
 
     println!("Load env vars");
     #[allow(non_snake_case)]
-    let TABLE_NAME = load_env_var("TABLE_NAME").unwrap();
+    let TABLE_NAME = load_env_var("TABLE_NAME").change_context(ExecutionError)?;
     #[allow(non_snake_case)]
-    let TABLE_REGION = load_env_var("TABLE_REGION").unwrap();
+    let TABLE_REGION = load_env_var("TABLE_REGION").change_context(ExecutionError)?;
     println!("TABLE_NAME: {}", TABLE_NAME);
     println!("TABLE_REGION: {}", TABLE_REGION);
 
