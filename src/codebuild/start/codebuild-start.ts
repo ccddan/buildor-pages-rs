@@ -27,9 +27,6 @@ export const handler = async (event: any, context: any) => {
             },
             phases: {
               install: {
-                "runtime-versions": {
-                  nodejs: "16.x",
-                },
                 commands: [
                   "echo Download project",
                   "node -v",
