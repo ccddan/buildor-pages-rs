@@ -10,7 +10,7 @@ use tokio_stream::StreamExt;
 
 pub struct UsersParser {}
 impl UsersParser {
-    pub fn user(item: HashMap<String, AttributeValue>) -> User {
+    pub fn parse(item: HashMap<String, AttributeValue>) -> User {
         let uuid = item.get("uuid").unwrap().as_s().unwrap().to_string();
         let fname = item.get("fname").unwrap().as_s().unwrap().to_string();
         let lname = item.get("lname").unwrap().as_s().unwrap().to_string();
@@ -19,7 +19,7 @@ impl UsersParser {
     }
 
     pub fn json(item: HashMap<String, AttributeValue>) -> Value {
-        json!(UsersParser::user(item))
+        json!(UsersParser::parse(item))
     }
 }
 
@@ -77,7 +77,7 @@ impl UsersHandler {
             Ok(res) => {
                 println!("UserHandler::list - parse users");
                 for item in res {
-                    let user = UsersParser::user(item);
+                    let user = UsersParser::parse(item);
                     println!("UserHandler::list - user: {:?}", user);
                     data.push(user);
                 }
