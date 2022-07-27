@@ -11,7 +11,7 @@ pub struct UsersParser {}
 impl UsersParser {
     pub fn user(item: HashMap<String, AttributeValue>) -> User {
         let uuid = item.get("uuid").unwrap().as_s().unwrap().to_string();
-        let fname = item.get("lname").unwrap().as_s().unwrap().to_string();
+        let fname = item.get("fname").unwrap().as_s().unwrap().to_string();
         let lname = item.get("lname").unwrap().as_s().unwrap().to_string();
 
         User { uuid, fname, lname }

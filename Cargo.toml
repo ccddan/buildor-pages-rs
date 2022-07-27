@@ -1,7 +1,15 @@
 [workspace]
 members = [
+  # Layers
   "src/layers/buildor",
+
+  # API - Root
   "src/api/root/any",
+
+  # API - Users
   "src/api/users/post",
   "src/api/users/list",
+
+  # API - Projects
+  "src/api/projects/post",
 ]

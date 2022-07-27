@@ -57,6 +57,7 @@ $ npm run build:api
    ```bash
    $ npm run cdk -- deploy $(echo $APP_PREFIX)APIStack --require-approval never --toolkit-stack-name $(echo $APP_PREFIX)Toolkit --profile <name>
    $ npm run cdk -- deploy $(echo $APP_PREFIX)APIUsersStack --force --require-approval never --toolkit-stack-name $(echo $APP_PREFIX)Toolkit --profile <name>
+   $ npm run cdk -- deploy $(echo $APP_PREFIX)APIProjectsStack --force --require-approval never --toolkit-stack-name $(echo $APP_PREFIX)Toolkit --profile <name>
    $ npm run cdk -- deploy $(echo $APP_PREFIX)APIDeploymentStack --require-approval never --toolkit-stack-name $(echo $APP_PREFIX)Toolkit --profile <name>
    ```
 
@@ -75,6 +76,7 @@ $ curl -vvv <API_URL>/users -d '{"fname": "John", "lname": "Doe"}'
 ## Clean Up
 
 ```bash
+$ npm run cdk -- destroy --force $(echo $APP_PREFIX)APIProjectsStack --toolkit-stack-name $(echo $APP_PREFIX)Toolkit --profile <name>
 $ npm run cdk -- destroy --force $(echo $APP_PREFIX)APIUsersStack --toolkit-stack-name $(echo $APP_PREFIX)Toolkit --profile <name>
 $ npm run cdk -- destroy --force $(echo $APP_PREFIX)APIStack --toolkit-stack-name $(echo $APP_PREFIX)Toolkit --profile <name>
 $ npm run cdk -- destroy --force $(echo $APP_PREFIX)DeployStack --toolkit-stack-name $(echo $APP_PREFIX)Toolkit --profile <name>
