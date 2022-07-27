@@ -1,20 +1,49 @@
 use std::collections::HashMap;
 
-use crate::models::project::{/* Commands, */ Project, ProjectCreatePayload};
+use crate::models::project::{Commands, Project, ProjectCreatePayload};
 use aws_sdk_dynamodb::types::SdkError;
 use aws_sdk_dynamodb::Client;
 use aws_sdk_dynamodb::{error::ScanError, model::AttributeValue};
-// use serde_dynamo::{from_item, to_item};
 use serde_json::{json, Value};
 use tokio_stream::StreamExt;
 
+pub struct CommandsParser;
+impl CommandsParser {
+    pub fn parse(item: HashMap<String, AttributeValue>) -> Commands {
+        let pre_build = item
+            .get("pre_build")
+            .unwrap()
+            .as_l()
+            .unwrap()
+            .iter()
+            .map(|command| command.as_s().unwrap().to_string())
+            .collect();
+        let build = item
+            .get("pre_build")
+            .unwrap()
+            .as_l()
+            .unwrap()
+            .iter()
+            .map(|command| command.as_s().unwrap().to_string())
+            .collect();
+        Commands { pre_build, build }
+    }
+}
+
 pub struct ProjectParser {}
 impl ProjectParser {
-    pub fn project(item: HashMap<String, AttributeValue>) -> Project {
-        // let project = from_item(item);
+    pub fn parse(item: HashMap<String, AttributeValue>) -> Project {
         let uuid = item.get("uuid").unwrap().as_s().unwrap().to_string();
         let name = item.get("name").unwrap().as_s().unwrap().to_string();
         let repository = item.get("repository").unwrap().as_s().unwrap().to_string();
+        let commands =
+            CommandsParser::parse(item.get("commands").unwrap().as_m().unwrap().to_owned());
+        let output_folder = item
+            .get("output_folder")
+            .unwrap()
+            .as_s()
+            .unwrap()
+            .to_string();
         let last_published = item
             .get("last_published")
             .unwrap()
@@ -26,13 +55,14 @@ impl ProjectParser {
             uuid,
             name,
             repository,
-            // commands: Commands::defaults(),
+            commands,
+            output_folder,
             last_published,
         }
     }
 
     pub fn json(item: HashMap<String, AttributeValue>) -> Value {
-        json!(ProjectParser::project(item))
+        json!(ProjectParser::parse(item))
     }
 }
 
@@ -49,27 +79,12 @@ impl ProjectsHandler {
     pub async fn create(self, payload: ProjectCreatePayload) -> Option<Project> {
         println!("ProjectsHandler::create - payload: {:?}", payload);
         let project = Project::new(payload);
-        // let item = to_item(project).unwrap();
 
         let tx = self
             .table
             .put_item()
             .table_name(self.table_name)
-            // .set_item(Some(item));
-            .item("uuid", AttributeValue::S(project.uuid.to_string()))
-            .item("name", AttributeValue::S(project.name.to_string()))
-            .item(
-                "repository",
-                AttributeValue::S(project.repository.to_string()),
-            )
-            // .item(
-            //     "commands",
-            //     AttributeValue::M(project.commands.into::<HashMap>()),
-            // )
-            .item(
-                "last_published",
-                AttributeValue::S(project.last_published.to_string()),
-            );
+            .set_item(Some(project.as_hashmap()));
 
         println!("ProjectsHandler::create - send tx");
         let result = tx.send().await;
@@ -105,9 +120,9 @@ impl ProjectsHandler {
             Ok(res) => {
                 println!("ProjectsHandler::list - parse projects");
                 for item in res {
-                    let user = ProjectParser::project(item);
-                    println!("ProjectsHandler::list - user: {:?}", user);
-                    data.push(user);
+                    let project = ProjectParser::parse(item);
+                    println!("ProjectsHandler::list - project: {:?}", project);
+                    data.push(project);
                 }
             }
             Err(err) => {
