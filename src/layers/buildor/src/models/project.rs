@@ -104,7 +104,7 @@ impl Project {
         map
     }
 
-    pub fn has_attr(&self) -> AttributeValue {
+    pub fn as_attr(&self) -> AttributeValue {
         AttributeValue::M(self.as_hashmap())
     }
 }
