@@ -9,7 +9,6 @@ import { Effect, PolicyStatement } from "aws-cdk-lib/aws-iam";
 import { Tables, TablesStack } from "../tables-stack";
 
 import { APIStack } from "./api-stack";
-import { Asset } from "aws-cdk-lib/aws-s3-assets";
 import { Construct } from "constructs";
 import { LambdaIntegration } from "aws-cdk-lib/aws-apigateway";
 
@@ -19,6 +18,7 @@ export class APIProjectsStack extends Stack {
   public static readonly pathProjects = "projects";
 
   public readonly post: Function;
+  public readonly list: Function;
   public readonly deploy: Function;
 
   constructor(scope: Construct, id: string, props: StackProps) {
@@ -48,6 +48,25 @@ export class APIProjectsStack extends Stack {
     projectsTable.grantWriteData(this.post);
     this.post.grantInvoke(APIStack.principal);
 
+    // List Projects
+    this.list = new Function(this, "list", {
+      description: "List projects",
+      runtime: Runtime.PROVIDED_AL2,
+      code: AssetCode.fromAsset(
+        `${this.srcPath}/api-projects-list/bootstrap.zip`
+      ),
+      architecture: Architecture.X86_64,
+      handler: "bootstrap",
+      environment: {
+        RUST_BACKTRACE: "1",
+        TABLE_NAME: projectsTable.tableName,
+        TABLE_REGION: props.env!.region!,
+      },
+      timeout: Duration.seconds(5),
+    });
+    projectsTable.grantReadData(this.list);
+    this.list.grantInvoke(APIStack.principal);
+
     // Deploy project
     this.deploy = new Function(this, "deploy", {
       description: "Deploy SPA project",
@@ -73,5 +92,6 @@ export class APIProjectsStack extends Stack {
 
     const projects = rootResource.addResource(APIProjectsStack.pathProjects);
     projects.addMethod("POST", new LambdaIntegration(this.post));
+    projects.addMethod("GET", new LambdaIntegration(this.list));
   }
 }
