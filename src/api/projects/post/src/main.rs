@@ -1,5 +1,5 @@
 use buildor::{
-    handlers::project::ProjectsHandler,
+    handlers::projects::ProjectsHandler,
     models::{
         common::{CommonError, ExecutionError},
         project::{ProjectCreatePayload, ProjectError},
