@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use uuid::Uuid;
 
-use super::request::RequestError;
+use super::{request::RequestError, AsDynamoDBAttributeValue};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Commands {
@@ -17,8 +17,9 @@ impl Commands {
             build: vec!["npm run build".to_string()],
         }
     }
-
-    pub fn as_hashmap(&self) -> HashMap<String, AttributeValue> {
+}
+impl AsDynamoDBAttributeValue for Commands {
+    fn as_hashmap(&self) -> HashMap<String, AttributeValue> {
         let mut map: HashMap<String, AttributeValue> = HashMap::new();
         map.insert(
             "pre_build".to_string(),
@@ -42,7 +43,7 @@ impl Commands {
         map
     }
 
-    pub fn as_attr(&self) -> AttributeValue {
+    fn as_attr(&self) -> AttributeValue {
         AttributeValue::M(self.as_hashmap())
     }
 }
@@ -82,8 +83,10 @@ impl Project {
             last_published: "-".to_string(),
         }
     }
+}
 
-    pub fn as_hashmap(&self) -> HashMap<String, AttributeValue> {
+impl AsDynamoDBAttributeValue for Project {
+    fn as_hashmap(&self) -> HashMap<String, AttributeValue> {
         let mut map: HashMap<String, AttributeValue> = HashMap::new();
         map.insert("uuid".to_string(), AttributeValue::S(self.uuid.to_owned()));
         map.insert("name".to_string(), AttributeValue::S(self.name.to_owned()));
@@ -104,7 +107,7 @@ impl Project {
         map
     }
 
-    pub fn as_attr(&self) -> AttributeValue {
+    fn as_attr(&self) -> AttributeValue {
         AttributeValue::M(self.as_hashmap())
     }
 }
