@@ -2,6 +2,9 @@ import { CodeBuild } from "aws-sdk";
 const codebuild = new CodeBuild();
 
 export const handler = async (event: any, context: any) => {
+  const projectName = "buildspace-solana-pay";
+  const projectRepository =
+    "https://github.com/ccddan/buildspace-solana-pay.git";
   try {
     console.log("Trigger codebuild project to deploy SPA");
     const result = await codebuild
@@ -10,11 +13,11 @@ export const handler = async (event: any, context: any) => {
         environmentVariablesOverride: [
           {
             name: "PROJECT_NAME",
-            value: "buildspace-solana-pay",
+            value: projectName,
           },
           {
             name: "REPO_URL",
-            value: "https://github.com/ccddan/buildspace-solana-pay.git",
+            value: projectRepository,
           },
         ],
         buildspecOverride: JSON.stringify(
@@ -48,8 +51,9 @@ export const handler = async (event: any, context: any) => {
                   "npm run release",
                   "ls -las",
                   "echo Move build output to artifacts location",
-                  "mv out ../dist/$PROJECT_NAME",
-                  "ls -las ../dist",
+                  "mv out ../dist",
+                  "cd ..",
+                  "ls -las dist",
                 ],
               },
               post_build: {
@@ -58,7 +62,8 @@ export const handler = async (event: any, context: any) => {
             },
             artifacts: {
               "discard-paths": "no",
-              files: ["dist"],
+              files: ["dist/**/*"],
+              name: `${projectName}-dist-${new Date().toISOString()}.zip`,
             },
           },
           null,
