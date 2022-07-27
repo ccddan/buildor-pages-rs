@@ -46,6 +46,12 @@ $ npm run build:api
    $ npm run cdk -- deploy $(echo $APP_PREFIX)TablesStack --toolkit-stack-name $(echo $APP_PREFIX)Toolkit --profile <name>
    ```
 
+1. Resources to automatically deploy SPAs:
+
+   ```bash
+   $ npm run cdk -- deploy $(echo $APP_PREFIX)DeployStack --toolkit-stack-name $(echo $APP_PREFIX)Toolkit --profile <name>
+   ```
+
 1. Deploy API:
 
    ```bash
@@ -69,7 +75,8 @@ $ curl -vvv <API_URL>/users -d '{"fname": "John", "lname": "Doe"}'
 ## Clean Up
 
 ```bash
-$ npm run cdk -- destroy --force $(echo $APP_PREFIX)TablesStack --toolkit-stack-name $(echo $APP_PREFIX)Toolkit --profile <name>
 $ npm run cdk -- destroy --force $(echo $APP_PREFIX)APIUsersStack --toolkit-stack-name $(echo $APP_PREFIX)Toolkit --profile <name>
 $ npm run cdk -- destroy --force $(echo $APP_PREFIX)APIStack --toolkit-stack-name $(echo $APP_PREFIX)Toolkit --profile <name>
+$ npm run cdk -- destroy --force $(echo $APP_PREFIX)DeployStack --toolkit-stack-name $(echo $APP_PREFIX)Toolkit --profile <name>
+$ npm run cdk -- destroy --force $(echo $APP_PREFIX)TablesStack --toolkit-stack-name $(echo $APP_PREFIX)Toolkit --profile <name>
 ```
