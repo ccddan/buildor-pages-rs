@@ -34,14 +34,12 @@ export const handler = async (event: any, context: any) => {
                   "echo Download project",
                   "node -v",
                   "git clone $REPO_URL $PROJECT_NAME",
-                  "ls -las",
                 ],
               },
               pre_build: {
                 commands: [
                   "echo Install project dependencies",
                   "cd $PROJECT_NAME",
-                  "ls -las",
                   "npm install",
                 ],
               },
@@ -49,7 +47,6 @@ export const handler = async (event: any, context: any) => {
                 commands: [
                   "echo Build project",
                   "npm run release",
-                  "ls -las",
                   "echo Move build output to artifacts location",
                   "mv out ../dist",
                   "cd ..",
