@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use crate::models::user::{User, UserCreatePayload};
+use crate::models::AsDynamoDBAttributeValue;
 use aws_sdk_dynamodb::types::SdkError;
 use aws_sdk_dynamodb::Client;
 use aws_sdk_dynamodb::{error::ScanError, model::AttributeValue};
@@ -40,9 +41,7 @@ impl UsersHandler {
             .table
             .put_item()
             .table_name(self.table_name)
-            .item("uuid", AttributeValue::S(user.uuid.to_string()))
-            .item("fname", AttributeValue::S(user.fname.to_string()))
-            .item("lname", AttributeValue::S(user.lname.to_string()));
+            .set_item(Some(user.as_hashmap()));
 
         println!("UserHandler::create - send tx");
         let result = tx.send().await;

@@ -1,7 +1,10 @@
+use std::collections::HashMap;
+
+use aws_sdk_dynamodb::model::AttributeValue;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use super::request::RequestError;
+use super::{request::RequestError, AsDynamoDBAttributeValue};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct User {
@@ -23,6 +26,26 @@ impl User {
             fname: payload.fname,
             lname: payload.lname,
         }
+    }
+}
+impl AsDynamoDBAttributeValue for User {
+    fn as_hashmap(&self) -> HashMap<String, AttributeValue> {
+        let mut map: HashMap<String, AttributeValue> = HashMap::new();
+        map.insert("uuid".to_string(), AttributeValue::S(self.uuid.to_owned()));
+        map.insert(
+            "fname".to_string(),
+            AttributeValue::S(self.fname.to_owned()),
+        );
+        map.insert(
+            "lname".to_string(),
+            AttributeValue::S(self.lname.to_owned()),
+        );
+
+        map
+    }
+
+    fn as_attr(&self) -> AttributeValue {
+        AttributeValue::M(self.as_hashmap())
     }
 }
 
