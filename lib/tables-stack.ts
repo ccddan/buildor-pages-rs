@@ -16,6 +16,7 @@ import config from "../config";
 
 export enum Tables {
   Users = "Users",
+  Projects = "Projects",
 }
 
 export class TablesStack extends OutputStack {
@@ -37,6 +38,24 @@ export class TablesStack extends OutputStack {
       config.app.name(`${Tables.Users}StreamSSM`),
       config.ssm.tables.users.streamArn,
       users.tableStreamArn!
+    );
+
+    const projects = new Table(this, Tables.Projects, {
+      partitionKey: { name: "uuid", type: AttributeType.STRING },
+      billingMode: BillingMode.PAY_PER_REQUEST,
+      stream: StreamViewType.NEW_AND_OLD_IMAGES,
+    });
+
+    this.outputSSM(
+      config.app.name(`${Tables.Projects}SSM`),
+      config.ssm.tables.projects.tableArn,
+      projects.tableArn
+    );
+
+    this.outputSSM(
+      config.app.name(`${Tables.Projects}StreamSSM`),
+      config.ssm.tables.projects.streamArn,
+      projects.tableStreamArn!
     );
   }
 
