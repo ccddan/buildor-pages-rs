@@ -12,6 +12,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "api-projects-deploy-post"
+version = "0.1.0"
+dependencies = [
+ "aws-config",
+ "aws-sdk-codebuild",
+ "buildor",
+ "env_logger",
+ "error-stack",
+ "lambda_runtime",
+ "log",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
 name = "api-projects-list"
 version = "0.1.0"
 dependencies = [
@@ -167,6 +182,28 @@ dependencies = [
  "lazy_static",
  "percent-encoding",
  "tracing",
+]
+
+[[package]]
+name = "aws-sdk-codebuild"
+version = "0.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "836fcbd18947ce08f30f4e5d0d766b2566e5ea8272c893b0feebc8b8b520e057"
+dependencies = [
+ "aws-endpoint",
+ "aws-http",
+ "aws-sig-auth",
+ "aws-smithy-async",
+ "aws-smithy-client",
+ "aws-smithy-http",
+ "aws-smithy-http-tower",
+ "aws-smithy-json",
+ "aws-smithy-types",
+ "aws-types",
+ "bytes",
+ "http",
+ "tokio-stream",
+ "tower",
 ]
 
 [[package]]

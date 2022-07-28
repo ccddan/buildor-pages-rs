@@ -13,9 +13,10 @@ import { Construct } from "constructs";
 import { LambdaIntegration } from "aws-cdk-lib/aws-apigateway";
 
 export class APIProjectsStack extends Stack {
-  private readonly srcPathTs = "src/codebuild";
   private readonly srcPath = "target/lambda";
   public static readonly pathProjects = "projects";
+  public static readonly pathProject = `${APIProjectsStack.pathProjects}/{project}`;
+  public static readonly pathDeploy = `${APIProjectsStack.pathProject}/deploy`;
 
   public readonly post: Function;
   public readonly list: Function;
@@ -69,13 +70,22 @@ export class APIProjectsStack extends Stack {
 
     // Deploy project
     this.deploy = new Function(this, "deploy", {
-      description: "Deploy SPA project",
-      runtime: Runtime.NODEJS_16_X,
-      code: AssetCode.fromAsset(`${this.srcPathTs}/start`),
+      description: "Deploy project as SPA",
+      runtime: Runtime.PROVIDED_AL2,
+      code: AssetCode.fromAsset(
+        `${this.srcPath}/api-projects-deploy-post/bootstrap.zip`
+      ),
       architecture: Architecture.X86_64,
-      handler: "codebuild-start.handler",
+      handler: "bootstrap",
+      environment: {
+        RUST_BACKTRACE: "1",
+        TABLE_NAME: projectsTable.tableName,
+        TABLE_REGION: props.env!.region!,
+      },
       timeout: Duration.seconds(5),
     });
+    projectsTable.grantReadData(this.deploy);
+    this.deploy.grantInvoke(APIStack.principal);
     this.deploy.addToRolePolicy(
       new PolicyStatement({
         effect: Effect.ALLOW,
@@ -93,5 +103,8 @@ export class APIProjectsStack extends Stack {
     const projects = rootResource.addResource(APIProjectsStack.pathProjects);
     projects.addMethod("POST", new LambdaIntegration(this.post));
     projects.addMethod("GET", new LambdaIntegration(this.list));
+
+    const deploy = rootResource.resourceForPath(APIProjectsStack.pathDeploy);
+    deploy.addMethod("POST", new LambdaIntegration(this.deploy));
   }
 }
