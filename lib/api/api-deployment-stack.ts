@@ -1,17 +1,17 @@
-import {
-  AccessLogFormat,
-  Deployment,
-  LogGroupLogDestination,
-  MethodLoggingLevel,
-  Stage,
-} from "aws-cdk-lib/aws-apigateway";
-
-import { APIStack } from "./api-stack";
-import { Construct } from "constructs";
-import { LogGroup } from "aws-cdk-lib/aws-logs";
-import { OutputStack } from "../utils/output-stack";
 import { StackProps } from "aws-cdk-lib";
+import {
+    AccessLogFormat,
+    Deployment,
+    LogGroupLogDestination,
+    MethodLoggingLevel,
+    Stage
+} from "aws-cdk-lib/aws-apigateway";
+import { LogGroup } from "aws-cdk-lib/aws-logs";
+import { Construct } from "constructs";
 import config from "../../config";
+import { OutputStack } from "../utils/output-stack";
+import { APIStack } from "./api-stack";
+
 
 export class APIDeploymentStack extends OutputStack {
   constructor(scope: Construct, id: string, props: StackProps) {

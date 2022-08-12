@@ -1,18 +1,18 @@
-import {
-  AttributeType,
-  BillingMode,
-  ITable,
-  StreamViewType,
-  Table,
-} from "aws-cdk-lib/aws-dynamodb";
-import { Effect, IGrantable, PolicyStatement } from "aws-cdk-lib/aws-iam";
-
-import { Construct } from "constructs";
-import { Function } from "aws-cdk-lib/aws-lambda";
-import { OutputStack } from "./utils/output-stack";
 import { StackProps } from "aws-cdk-lib";
+import {
+    AttributeType,
+    BillingMode,
+    ITable,
+    StreamViewType,
+    Table
+} from "aws-cdk-lib/aws-dynamodb";
+import { Effect, PolicyStatement } from "aws-cdk-lib/aws-iam";
+import { Function } from "aws-cdk-lib/aws-lambda";
 import { StringParameter } from "aws-cdk-lib/aws-ssm";
+import { Construct } from "constructs";
 import config from "../config";
+import { OutputStack } from "./utils/output-stack";
+
 
 export enum Tables {
   Users = "Users",

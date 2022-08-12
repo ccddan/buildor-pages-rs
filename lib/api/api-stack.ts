@@ -1,26 +1,26 @@
-import {
-  Architecture,
-  AssetCode,
-  Function,
-  Runtime,
-} from "aws-cdk-lib/aws-lambda";
-import {
-  AuthorizationType,
-  EndpointType,
-  IResource,
-  IRestApi,
-  LambdaIntegration,
-  MethodLoggingLevel,
-  Resource,
-  RestApi,
-} from "aws-cdk-lib/aws-apigateway";
-
-import { Construct } from "constructs";
-import { OutputStack } from "../utils/output-stack";
-import { ServicePrincipal } from "aws-cdk-lib/aws-iam";
 import { StackProps } from "aws-cdk-lib";
+import {
+    AuthorizationType,
+    EndpointType,
+    IResource,
+    IRestApi,
+    LambdaIntegration,
+
+    Resource,
+    RestApi
+} from "aws-cdk-lib/aws-apigateway";
+import { ServicePrincipal } from "aws-cdk-lib/aws-iam";
+import {
+    Architecture,
+    AssetCode,
+    Function,
+    Runtime
+} from "aws-cdk-lib/aws-lambda";
 import { StringParameter } from "aws-cdk-lib/aws-ssm";
+import { Construct } from "constructs";
 import config from "../../config";
+import { OutputStack } from "../utils/output-stack";
+
 
 export class APIStack extends OutputStack {
   public static readonly principal = new ServicePrincipal(

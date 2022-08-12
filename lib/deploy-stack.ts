@@ -1,12 +1,11 @@
-import * as actions from "aws-cdk-lib/aws-codepipeline-actions";
+import { Duration, RemovalPolicy, StackProps } from "aws-cdk-lib";
 import * as build from "aws-cdk-lib/aws-codebuild";
 import * as s3 from "aws-cdk-lib/aws-s3";
-
-import { Duration, RemovalPolicy, StackProps } from "aws-cdk-lib";
-
 import { Construct } from "constructs";
-import { OutputStack } from "./utils/output-stack";
 import config from "../config";
+import { OutputStack } from "./utils/output-stack";
+
+
 
 export class DeployStack extends OutputStack {
   constructor(scope: Construct, id: string, props: StackProps) {

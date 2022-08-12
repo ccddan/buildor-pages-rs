@@ -1,7 +1,7 @@
 import { CfnOutput, Stack, StackProps } from "aws-cdk-lib";
 import { ParameterType, StringParameter } from "aws-cdk-lib/aws-ssm";
-
 import { Construct } from "constructs";
+
 
 export abstract class OutputStack extends Stack {
   constructor(scope: Construct, id: string, props: StackProps) {

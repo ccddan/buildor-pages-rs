@@ -1,16 +1,16 @@
-import {
-  Architecture,
-  AssetCode,
-  Function,
-  Runtime,
-} from "aws-cdk-lib/aws-lambda";
 import { Duration, Stack, StackProps } from "aws-cdk-lib";
-import { Effect, PolicyStatement } from "aws-cdk-lib/aws-iam";
-import { Tables, TablesStack } from "../tables-stack";
-
-import { APIStack } from "./api-stack";
-import { Construct } from "constructs";
 import { LambdaIntegration } from "aws-cdk-lib/aws-apigateway";
+import { Effect, PolicyStatement } from "aws-cdk-lib/aws-iam";
+import {
+    Architecture,
+    AssetCode,
+    Function,
+    Runtime
+} from "aws-cdk-lib/aws-lambda";
+import { Construct } from "constructs";
+import { Tables, TablesStack } from "../tables-stack";
+import { APIStack } from "./api-stack";
+
 
 export class APIProjectsStack extends Stack {
   private readonly srcPath = "target/lambda";

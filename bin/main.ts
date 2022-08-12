@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 
+import { App } from "aws-cdk-lib";
 import "source-map-support/register";
-
+import config from "../config";
 import { APIDeploymentStack } from "../lib/api/api-deployment-stack";
 import { APIProjectsStack } from "../lib/api/api-projects-stack";
 import { APIStack } from "../lib/api/api-stack";
 import { APIUsersStack } from "../lib/api/api-users-stack";
-import { App } from "aws-cdk-lib";
 import { DeployStack } from "../lib/deploy-stack";
 import { TablesStack } from "../lib/tables-stack";
-import config from "../config";
+
 
 const env = {
   region: config.aws.region,
