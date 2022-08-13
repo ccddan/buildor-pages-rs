@@ -8,4 +8,4 @@ node_modules
 cdk.out
 target/
 .env
-.commands.md
+commands.md
