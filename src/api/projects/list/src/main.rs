@@ -33,9 +33,9 @@ async fn handler(event: LambdaEvent<Value>) -> Result<Value, Report<ExecutionErr
 
     println!("Load env vars");
     #[allow(non_snake_case)]
-    let TABLE_NAME = load_env_var("TABLE_NAME").change_context(ExecutionError)?;
+    let TABLE_NAME = load_env_var("TABLE_NAME", None).change_context(ExecutionError)?;
     #[allow(non_snake_case)]
-    let TABLE_REGION = load_env_var("TABLE_REGION").change_context(ExecutionError)?;
+    let TABLE_REGION = load_env_var("TABLE_REGION", None).change_context(ExecutionError)?;
     println!("TABLE_NAME: {}", TABLE_NAME);
     println!("TABLE_REGION: {}", TABLE_REGION);
 

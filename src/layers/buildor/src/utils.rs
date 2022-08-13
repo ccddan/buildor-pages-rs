@@ -7,9 +7,24 @@ pub async fn get_table_client() -> Client {
     Client::new(&config)
 }
 
-pub fn load_env_var(name: &str) -> Result<String, Report<RequiredEnvVarError>> {
-    let value =
-        std::env::var(name).or_else(|_| Err(Report::new(RequiredEnvVarError::new(name))))?;
-
-    Ok(value)
+pub fn load_env_var(
+    name: &str,
+    default: Option<&str>,
+) -> Result<String, Report<RequiredEnvVarError>> {
+    match std::env::var(name) {
+        Ok(val) => Ok(val),
+        Err(err) => {
+            println!("Env var \"{}\" does not exist. Error: {}", &name, err);
+            match default {
+                Some(default_value) => {
+                    println!("Using default value: {}", &default_value);
+                    Ok(String::from(default_value))
+                }
+                None => {
+                    println!("No default value provided, paniking");
+                    Err(Report::new(RequiredEnvVarError::new(name)))
+                }
+            }
+        }
+    }
 }
