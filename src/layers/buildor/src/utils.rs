@@ -1,11 +1,6 @@
 use crate::models::common::RequiredEnvVarError;
-use aws_sdk_dynamodb::Client;
+use aws_sdk_dynamodb::Client as DynamoClient;
 use error_stack::Report;
-
-pub async fn get_table_client() -> Client {
-    let config = aws_config::load_from_env().await;
-    Client::new(&config)
-}
 
 pub fn load_env_var(
     name: &str,
@@ -26,5 +21,13 @@ pub fn load_env_var(
                 }
             }
         }
+    }
+}
+
+pub struct Clients;
+impl Clients {
+    pub async fn dynamodb() -> DynamoClient {
+        let config = aws_config::load_from_env().await;
+        DynamoClient::new(&config)
     }
 }

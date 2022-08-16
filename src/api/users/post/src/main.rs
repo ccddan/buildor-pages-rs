@@ -6,7 +6,7 @@ use buildor::{
         response::Response,
         user::{UserCreatePayload, UserError},
     },
-    utils::{get_table_client, load_env_var},
+    utils::{load_env_var, Clients},
 };
 use error_stack::{Report, ResultExt};
 use lambda_runtime::{service_fn, LambdaEvent};
@@ -68,7 +68,7 @@ async fn handler(event: LambdaEvent<Value>) -> Result<Value, Report<ExecutionErr
         }
     }
 
-    let table = get_table_client().await;
+    let table = Clients::dynamodb().await;
     let uh = UsersHandler::new(table, TABLE_NAME);
     let user = uh.create(body).await;
 
