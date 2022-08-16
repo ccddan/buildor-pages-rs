@@ -448,6 +448,7 @@ name = "buildor"
 version = "0.1.0"
 dependencies = [
  "aws-config",
+ "aws-sdk-codebuild",
  "aws-sdk-dynamodb",
  "env_logger",
  "error-stack",

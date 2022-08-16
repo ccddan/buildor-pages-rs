@@ -1,4 +1,5 @@
 use crate::models::common::RequiredEnvVarError;
+use aws_sdk_codebuild::Client as CodebuildClient;
 use aws_sdk_dynamodb::Client as DynamoClient;
 use error_stack::Report;
 
@@ -29,5 +30,10 @@ impl Clients {
     pub async fn dynamodb() -> DynamoClient {
         let config = aws_config::load_from_env().await;
         DynamoClient::new(&config)
+    }
+
+    pub async fn codebuild() -> CodebuildClient {
+        let config = aws_config::load_from_env().await;
+        CodebuildClient::new(&config)
     }
 }

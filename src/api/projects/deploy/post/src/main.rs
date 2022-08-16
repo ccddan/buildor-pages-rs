@@ -1,19 +1,11 @@
-use aws_sdk_codebuild::{
-    model::{EnvironmentVariable, EnvironmentVariableType},
-    Client as CodeBuildClient,
-};
+use aws_sdk_codebuild::model::{EnvironmentVariable, EnvironmentVariableType};
 use buildor::{
     models::{common::ExecutionError, request::RequestError, response::Response},
-    utils::load_env_var,
+    utils::{load_env_var, Clients},
 };
 use error_stack::{Report, ResultExt};
 use lambda_runtime::{service_fn, LambdaEvent};
 use serde_json::{json, Value};
-
-pub async fn get_codebuild_client() -> CodeBuildClient {
-    let config = aws_config::load_from_env().await;
-    CodeBuildClient::new(&config)
-}
 
 #[tokio::main]
 async fn main() -> Result<(), Value> {
@@ -123,7 +115,7 @@ async fn handler(event: LambdaEvent<Value>) -> Result<Value, Report<ExecutionErr
         "###
     );
 
-    let build = get_codebuild_client().await;
+    let build = Clients::codebuild().await;
     let tx = build
         .start_build()
         .project_name(codebuild_project_name.to_string())
