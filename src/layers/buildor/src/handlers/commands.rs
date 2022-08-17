@@ -52,3 +52,30 @@ impl CommandsParser {
         Ok(Commands::new(Some(pre_build), Some(build)))
     }
 }
+
+#[cfg(test)]
+mod commands_parser_tests {
+    use super::*;
+
+    #[test]
+    fn parse_fails_on_missing_pre_build_command() {
+        let input: HashMap<String, AttributeValue> = HashMap::new();
+        match CommandsParser::parse(input) {
+            Err(error) => assert_eq!(error.to_string(), "Missing required command: pre_build"),
+            _ => assert_eq!("", "Should have panicked but it did not"),
+        }
+    }
+
+    #[test]
+    fn parse_fails_on_missing_build_command() {
+        let mut input: HashMap<String, AttributeValue> = HashMap::new();
+        input.insert(
+            "pre_build".to_owned(),
+            AttributeValue::L(vec![AttributeValue::S("command1".to_string())]),
+        );
+        match CommandsParser::parse(input) {
+            Err(error) => assert_eq!(error.to_string(), "Missing required command: build"),
+            _ => assert_eq!("", "Should have panicked but it did not"),
+        }
+    }
+}
