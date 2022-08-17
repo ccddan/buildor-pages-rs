@@ -9,6 +9,7 @@ use std::fmt;
 pub struct MissingRequiredCommandError {
     pub name: String,
 }
+
 impl MissingRequiredCommandError {
     pub fn new(name: &str) -> Self {
         Self {
@@ -16,11 +17,13 @@ impl MissingRequiredCommandError {
         }
     }
 }
+
 impl fmt::Display for MissingRequiredCommandError {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt.write_str(format!("Missing required command: {}", self.name).as_str())
     }
 }
+
 impl Context for MissingRequiredCommandError {}
 
 pub struct CommandsParser;
@@ -49,6 +52,7 @@ impl CommandsParser {
             .iter()
             .map(|command| command.as_s().unwrap().to_string())
             .collect::<Vec<String>>();
+
         Ok(Commands::new(Some(pre_build), Some(build)))
     }
 }

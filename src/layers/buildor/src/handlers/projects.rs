@@ -15,6 +15,7 @@ use crate::models::project::{Project, ProjectCreatePayload};
 pub struct MissingProjectPropertyError {
     pub name: String,
 }
+
 impl MissingProjectPropertyError {
     pub fn new(name: &str) -> Self {
         Self {
@@ -22,11 +23,13 @@ impl MissingProjectPropertyError {
         }
     }
 }
+
 impl fmt::Display for MissingProjectPropertyError {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt.write_str(format!("Missing project property: {}", self.name).as_str())
     }
 }
+
 impl Context for MissingProjectPropertyError {}
 
 pub struct ProjectParser {}
@@ -97,6 +100,7 @@ impl ProjectParser {
         }
     }
 }
+
 #[cfg(test)]
 mod project_parser_tests {
     use super::*;
