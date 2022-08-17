@@ -97,6 +97,133 @@ impl ProjectParser {
         }
     }
 }
+#[cfg(test)]
+mod project_parser_tests {
+    use super::*;
+    use crate::models::commands::Commands;
+
+    // Validate required properties
+    #[test]
+    fn fails_on_missing_uuid() {
+        let input: HashMap<String, AttributeValue> = HashMap::new();
+        match ProjectParser::parse(input) {
+            Err(error) => assert_eq!(error.to_string(), "Missing project property: uuid"),
+            _ => assert_eq!("", "Should have panicked but it did not"),
+        }
+    }
+
+    #[test]
+    fn fails_on_missing_name() {
+        let mut input: HashMap<String, AttributeValue> = HashMap::new();
+        input.insert(
+            "uuid".to_string(),
+            AttributeValue::S("uuid-value".to_string()),
+        );
+        match ProjectParser::parse(input) {
+            Err(error) => assert_eq!(error.to_string(), "Missing project property: name"),
+            _ => assert_eq!("", "Should have panicked but it did not"),
+        }
+    }
+
+    #[test]
+    fn fails_on_missing_repository() {
+        let mut input: HashMap<String, AttributeValue> = HashMap::new();
+        input.insert(
+            "uuid".to_string(),
+            AttributeValue::S("uuid-value".to_string()),
+        );
+        input.insert(
+            "name".to_string(),
+            AttributeValue::S("name-value".to_string()),
+        );
+
+        match ProjectParser::parse(input) {
+            Err(error) => assert_eq!(error.to_string(), "Missing project property: repository"),
+            _ => assert_eq!("", "Should have panicked but it did not"),
+        }
+    }
+
+    #[test]
+    fn fails_on_missing_commands() {
+        let mut input: HashMap<String, AttributeValue> = HashMap::new();
+        input.insert(
+            "uuid".to_string(),
+            AttributeValue::S("uuid-value".to_string()),
+        );
+        input.insert(
+            "name".to_string(),
+            AttributeValue::S("name-value".to_string()),
+        );
+        input.insert(
+            "repository".to_string(),
+            AttributeValue::S("repository-value".to_string()),
+        );
+
+        match ProjectParser::parse(input) {
+            Err(error) => assert_eq!(error.to_string(), "Missing project property: commands"),
+            _ => assert_eq!("", "Should have panicked but it did not"),
+        }
+    }
+
+    #[test]
+    fn fails_on_missing_output_folder() {
+        let mut input: HashMap<String, AttributeValue> = HashMap::new();
+        input.insert(
+            "uuid".to_string(),
+            AttributeValue::S("uuid-value".to_string()),
+        );
+        input.insert(
+            "name".to_string(),
+            AttributeValue::S("name-value".to_string()),
+        );
+        input.insert(
+            "repository".to_string(),
+            AttributeValue::S("repository-value".to_string()),
+        );
+        input.insert(
+            "commands".to_string(),
+            AttributeValue::M(Commands::defaults().as_hashmap()),
+        );
+
+        match ProjectParser::parse(input) {
+            Err(error) => assert_eq!(error.to_string(), "Missing project property: output_folder"),
+            _ => assert_eq!("", "Should have panicked but it did not"),
+        }
+    }
+
+    #[test]
+    fn fails_on_missing_last_published() {
+        let mut input: HashMap<String, AttributeValue> = HashMap::new();
+        input.insert(
+            "uuid".to_string(),
+            AttributeValue::S("uuid-value".to_string()),
+        );
+        input.insert(
+            "name".to_string(),
+            AttributeValue::S("name-value".to_string()),
+        );
+        input.insert(
+            "repository".to_string(),
+            AttributeValue::S("repository-value".to_string()),
+        );
+        input.insert(
+            "commands".to_string(),
+            AttributeValue::M(Commands::defaults().as_hashmap()),
+        );
+        input.insert(
+            "output_folder".to_string(),
+            AttributeValue::S("output-folder-value".to_string()),
+        );
+
+        match ProjectParser::parse(input) {
+            Err(error) => assert_eq!(
+                error.to_string(),
+                "Missing project property: last_published"
+            ),
+            _ => assert_eq!("", "Should have panicked but it did not"),
+        }
+    }
+}
 
 pub struct ProjectsHandler {
     table: Client,
