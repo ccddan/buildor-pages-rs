@@ -37,3 +37,26 @@ impl Clients {
         CodebuildClient::new(&config)
     }
 }
+
+#[cfg(test)]
+mod load_env_var {
+    use super::*;
+
+    #[test]
+    #[should_panic(expected = "Missing required env var: Undefined")]
+    fn exception_when_undefined_env_var() -> () {
+        let _ = load_env_var("Undefined", None).unwrap();
+    }
+
+    #[test]
+    fn returns_default_value() -> () {
+        let default_value = "default_value";
+        let value = load_env_var("Undefined", Some(&default_value)).unwrap();
+        assert_eq!(value, default_value);
+    }
+
+    #[test]
+    fn returns_env_var_value() -> () {
+        let _ = load_env_var("USER", None).unwrap();
+    }
+}
