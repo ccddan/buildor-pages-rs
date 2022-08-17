@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use aws_sdk_dynamodb::model::AttributeValue;
-use serde::{Deserialize, Serialize};
+use serde_derive::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use super::{request::RequestError, AsDynamoDBAttributeValue};
