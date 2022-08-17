@@ -279,10 +279,16 @@ impl ProjectsHandler {
             Ok(res) => {
                 println!("ProjectsHandler::list - parse projects");
                 for item in res {
-                    if let Ok(project) = ProjectParser::parse(item) {
-                        println!("ProjectsHandler::list - project: {:?}", project);
-                        data.push(project);
-                    }
+                    println!("ProjectParser::list - parse record: {:?}", &item);
+                    match ProjectParser::parse(item) {
+                        Ok(parsed) => {
+                            println!("ProjectsHandler::list - project: {:?}", parsed);
+                            data.push(parsed);
+                        }
+                        Err(error) => {
+                            println!("ProjectParser::list - parse error: {}", error);
+                        }
+                    };
                 }
             }
             Err(err) => {
