@@ -1,35 +1,13 @@
-use std::collections::HashMap;
-
-use crate::models::common::AsDynamoDBAttributeValue;
-use crate::models::project::{Commands, Project, ProjectCreatePayload};
 use aws_sdk_dynamodb::types::SdkError;
 use aws_sdk_dynamodb::Client;
 use aws_sdk_dynamodb::{error::ScanError, model::AttributeValue};
 use serde_json::{json, Value};
+use std::collections::HashMap;
 use tokio_stream::StreamExt;
 
-pub struct CommandsParser;
-impl CommandsParser {
-    pub fn parse(item: HashMap<String, AttributeValue>) -> Commands {
-        let pre_build = item
-            .get("pre_build")
-            .unwrap()
-            .as_l()
-            .unwrap()
-            .iter()
-            .map(|command| command.as_s().unwrap().to_string())
-            .collect();
-        let build = item
-            .get("pre_build")
-            .unwrap()
-            .as_l()
-            .unwrap()
-            .iter()
-            .map(|command| command.as_s().unwrap().to_string())
-            .collect();
-        Commands { pre_build, build }
-    }
-}
+use crate::handlers::commands::CommandsParser;
+use crate::models::common::AsDynamoDBAttributeValue;
+use crate::models::project::{Project, ProjectCreatePayload};
 
 pub struct ProjectParser {}
 impl ProjectParser {
@@ -38,7 +16,8 @@ impl ProjectParser {
         let name = item.get("name").unwrap().as_s().unwrap().to_string();
         let repository = item.get("repository").unwrap().as_s().unwrap().to_string();
         let commands =
-            CommandsParser::parse(item.get("commands").unwrap().as_m().unwrap().to_owned());
+            CommandsParser::parse(item.get("commands").unwrap().as_m().unwrap().to_owned())
+                .unwrap();
         let output_folder = item
             .get("output_folder")
             .unwrap()
