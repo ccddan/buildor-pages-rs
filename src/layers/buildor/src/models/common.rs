@@ -1,4 +1,6 @@
+use aws_sdk_dynamodb::model::AttributeValue;
 use error_stack::Context;
+use std::collections::HashMap;
 use std::fmt;
 
 use super::request::RequestError;
@@ -39,4 +41,9 @@ impl CommonError {
             details,
         }
     }
+}
+
+pub trait AsDynamoDBAttributeValue {
+    fn as_hashmap(&self) -> HashMap<String, AttributeValue>;
+    fn as_attr(&self) -> AttributeValue;
 }

@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
+use crate::models::common::AsDynamoDBAttributeValue;
 use crate::models::user::{User, UserCreatePayload};
-use crate::models::AsDynamoDBAttributeValue;
 use aws_sdk_dynamodb::types::SdkError;
 use aws_sdk_dynamodb::Client;
 use aws_sdk_dynamodb::{error::ScanError, model::AttributeValue};

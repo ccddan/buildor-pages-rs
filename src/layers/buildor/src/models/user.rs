@@ -4,7 +4,8 @@ use aws_sdk_dynamodb::model::AttributeValue;
 use serde_derive::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use super::{request::RequestError, AsDynamoDBAttributeValue};
+use super::common::AsDynamoDBAttributeValue;
+use super::request::RequestError;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct User {
