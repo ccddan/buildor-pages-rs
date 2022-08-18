@@ -1,10 +1,13 @@
 use std::collections::HashMap;
 
 use crate::models::common::AsDynamoDBAttributeValue;
+use crate::models::handlers::{HandlerCreate, HandlerError, HandlerList};
 use crate::models::user::{User, UserCreatePayload};
+use async_trait::async_trait;
 use aws_sdk_dynamodb::types::SdkError;
 use aws_sdk_dynamodb::Client;
 use aws_sdk_dynamodb::{error::ScanError, model::AttributeValue};
+use error_stack::Report;
 use serde_json::{json, Value};
 use tokio_stream::StreamExt;
 
@@ -32,15 +35,18 @@ impl UsersHandler {
     pub fn new(table: Client, table_name: String) -> Self {
         UsersHandler { table, table_name }
     }
+}
 
-    pub async fn create(self, payload: UserCreatePayload) -> Option<User> {
+#[async_trait]
+impl HandlerCreate<User, UserCreatePayload, HandlerError> for UsersHandler {
+    async fn create(&self, payload: UserCreatePayload) -> Result<User, Report<HandlerError>> {
         println!("UserHandler::create - payload: {:?}", payload);
         let user = User::new(payload);
 
         let tx = self
             .table
             .put_item()
-            .table_name(self.table_name)
+            .table_name(&self.table_name)
             .set_item(Some(user.as_hashmap()));
 
         println!("UserHandler::create - send tx");
@@ -50,23 +56,26 @@ impl UsersHandler {
         match result {
             Ok(res) => {
                 println!("UserHandler::create - new user created: {:?}", res);
-                Some(user)
+                Ok(user)
             }
-            Err(err) => {
-                println!("UserHandler::create - failed to create user: {:?}", err);
-                None
+            Err(error) => {
+                println!("UserHandler::create - failed to create user: {:?}", error);
+                Err(Report::new(HandlerError::new(&error.to_string())))
             }
         }
     }
+}
 
-    pub async fn list(self) -> Vec<User> {
+#[async_trait]
+impl HandlerList<User, HandlerError> for UsersHandler {
+    async fn list(&self) -> Result<Vec<User>, Report<HandlerError>> {
         let mut data = Vec::new();
 
         println!("UserHandler::list - preparing query to list users");
         let tx = self
             .table
             .scan()
-            .table_name(self.table_name)
+            .table_name(&self.table_name)
             .into_paginator()
             .items();
         println!("UserHandler::list - send tx");
@@ -84,9 +93,10 @@ impl UsersHandler {
             }
             Err(err) => {
                 println!("UserHandler::list - failed to list users: {}", err);
+                return Err(Report::new(HandlerError::new(&err.to_string())));
             }
         }
 
-        data
+        Ok(data)
     }
 }
