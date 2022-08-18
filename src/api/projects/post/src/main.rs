@@ -13,6 +13,8 @@ use lambda_runtime::{service_fn, LambdaEvent};
 use serde_json::{json, Value};
 use std::borrow::Cow;
 
+use buildor::models::handlers::HandlerCreate;
+
 #[tokio::main]
 async fn main() -> Result<(), Value> {
     env_logger::init();
@@ -70,10 +72,15 @@ async fn handler(event: LambdaEvent<Value>) -> Result<Value, Report<ExecutionErr
 
     let table = Clients::dynamodb().await;
     let ph = ProjectsHandler::new(table, TABLE_NAME);
-    let user = ph.create(body).await;
 
-    match user {
-        Some(user) => Ok(Response::new(json!(user), 200)),
-        None => Ok(Response::new(json!(ProjectError::creation_failed()), 400)),
+    match ph.create(body).await {
+        Ok(project) => Ok(Response::new(json!(project), 200)),
+        Err(error) => {
+            println!(
+                "Failed to create project: {}",
+                error.change_context(ExecutionError)
+            );
+            Ok(Response::new(json!(ProjectError::creation_failed()), 400))
+        }
     }
 }

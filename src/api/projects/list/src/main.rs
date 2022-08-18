@@ -7,6 +7,8 @@ use error_stack::{Report, ResultExt};
 use lambda_runtime::{service_fn, LambdaEvent};
 use serde_json::{json, Value};
 
+use buildor::models::handlers::HandlerList;
+
 #[tokio::main]
 async fn main() -> Result<(), Value> {
     env_logger::init();
@@ -46,7 +48,15 @@ async fn handler(event: LambdaEvent<Value>) -> Result<Value, Report<ExecutionErr
 
     let table = Clients::dynamodb().await;
     let ph = ProjectsHandler::new(table, TABLE_NAME);
-    let projects = ph.list().await;
 
-    Ok(Response::new(json!({ "data": projects }), 200))
+    match ph.list().await {
+        Err(error) => {
+            println!(
+                "An error happened when listing projects from db: {}",
+                error.to_string()
+            );
+            Err(error.change_context(ExecutionError))
+        }
+        Ok(projects) => Ok(Response::new(json!({ "data": projects }), 200)),
+    }
 }

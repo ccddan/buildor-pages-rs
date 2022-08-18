@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use aws_sdk_dynamodb::types::SdkError;
 use aws_sdk_dynamodb::Client;
 use aws_sdk_dynamodb::{error::ScanError, model::AttributeValue};
@@ -9,6 +10,7 @@ use tokio_stream::StreamExt;
 
 use crate::handlers::commands::CommandsParser;
 use crate::models::common::AsDynamoDBAttributeValue;
+use crate::models::handlers::{HandlerCreate, HandlerError, HandlerList};
 use crate::models::project::{Project, ProjectCreatePayload};
 
 #[derive(Debug)]
@@ -233,20 +235,25 @@ pub struct ProjectsHandler {
     table: Client,
     table_name: String,
 }
-
 impl ProjectsHandler {
-    pub fn new(table: Client, table_name: String) -> Self {
-        ProjectsHandler { table, table_name }
+    pub fn new(client: Client, table_name: String) -> Self {
+        Self {
+            table: client,
+            table_name,
+        }
     }
+}
 
-    pub async fn create(self, payload: ProjectCreatePayload) -> Option<Project> {
+#[async_trait]
+impl HandlerCreate<Project, ProjectCreatePayload, HandlerError> for ProjectsHandler {
+    async fn create(&self, payload: ProjectCreatePayload) -> Result<Project, Report<HandlerError>> {
         println!("ProjectsHandler::create - payload: {:?}", payload);
         let project = Project::new(payload);
 
         let tx = self
             .table
             .put_item()
-            .table_name(self.table_name)
+            .table_name(&self.table_name)
             .set_item(Some(project.as_hashmap()));
 
         println!("ProjectsHandler::create - send tx");
@@ -256,23 +263,25 @@ impl ProjectsHandler {
         match result {
             Ok(res) => {
                 println!("ProjectsHandler::create - new user created: {:?}", res);
-                Some(project)
+                Ok(project)
             }
             Err(err) => {
                 println!("ProjectsHandler::create - failed to create user: {:?}", err);
-                None
+                Err(Report::new(HandlerError::new(&err.to_string())))
             }
         }
     }
-
-    pub async fn list(self) -> Vec<Project> {
-        let mut data = Vec::new();
+}
+#[async_trait]
+impl HandlerList<Project, HandlerError> for ProjectsHandler {
+    async fn list(&self) -> Result<Vec<Project>, Report<HandlerError>> {
+        let mut data: Vec<Project> = Vec::new();
 
         println!("ProjectsHandler::list - preparing query to list projects");
         let tx = self
             .table
             .scan()
-            .table_name(self.table_name)
+            .table_name(&self.table_name)
             .into_paginator()
             .items();
         println!("ProjectsHandler::list - send tx");
@@ -290,16 +299,20 @@ impl ProjectsHandler {
                             data.push(parsed);
                         }
                         Err(error) => {
-                            println!("ProjectParser::list - parse error: {}", error);
+                            println!(
+                                "ProjectParser::list - parse error (skip from result): {}",
+                                error
+                            )
                         }
                     };
                 }
             }
             Err(err) => {
                 println!("ProjectsHandler::list - failed to list projects: {}", err);
+                return Err(Report::new(HandlerError::new(&err.to_string())));
             }
-        }
+        };
 
-        data
+        Ok(data)
     }
 }
