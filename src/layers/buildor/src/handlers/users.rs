@@ -44,6 +44,52 @@ impl UsersParser {
     }
 }
 
+#[cfg(test)]
+mod project_parser_tests {
+    use super::*;
+
+    // Validate required properties
+    #[test]
+    fn fails_on_missing_uuid() {
+        let input: HashMap<String, AttributeValue> = HashMap::new();
+        match UsersParser::parse(input) {
+            Err(error) => assert_eq!(error.to_string(), "Missing model property: uuid"),
+            _ => assert_eq!("", "Should have panicked but it did not"),
+        }
+    }
+
+    #[test]
+    fn fails_on_missing_fname() {
+        let mut input: HashMap<String, AttributeValue> = HashMap::new();
+        input.insert(
+            "uuid".to_string(),
+            AttributeValue::S("uuid-value".to_string()),
+        );
+        match UsersParser::parse(input) {
+            Err(error) => assert_eq!(error.to_string(), "Missing model property: fname"),
+            _ => assert_eq!("", "Should have panicked but it did not"),
+        }
+    }
+
+    #[test]
+    fn fails_on_missing_lname() {
+        let mut input: HashMap<String, AttributeValue> = HashMap::new();
+        input.insert(
+            "uuid".to_string(),
+            AttributeValue::S("uuid-value".to_string()),
+        );
+        input.insert(
+            "fname".to_string(),
+            AttributeValue::S("fname-value".to_string()),
+        );
+
+        match UsersParser::parse(input) {
+            Err(error) => assert_eq!(error.to_string(), "Missing model property: lname"),
+            _ => assert_eq!("", "Should have panicked but it did not"),
+        }
+    }
+}
+
 pub struct UsersHandler {
     table: Client,
     table_name: String,
