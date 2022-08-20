@@ -5,6 +5,7 @@ use std::fmt;
 
 use super::request::RequestError;
 
+/* Required Env Var Error */
 #[derive(Debug)]
 pub struct RequiredEnvVarError {
     pub name: String,
@@ -23,6 +24,7 @@ impl fmt::Display for RequiredEnvVarError {
 }
 impl Context for RequiredEnvVarError {}
 
+/* Execution Error */
 #[derive(Debug)]
 pub struct ExecutionError;
 impl fmt::Display for ExecutionError {
@@ -32,6 +34,7 @@ impl fmt::Display for ExecutionError {
 }
 impl Context for ExecutionError {}
 
+/* Common Error */
 pub struct CommonError;
 impl CommonError {
     pub fn schema_compliant(details: String) -> RequestError {
@@ -47,3 +50,25 @@ pub trait AsDynamoDBAttributeValue {
     fn as_hashmap(&self) -> HashMap<String, AttributeValue>;
     fn as_attr(&self) -> AttributeValue;
 }
+
+/* Missing Model Property Error */
+#[derive(Debug)]
+pub struct MissingModelPropertyError {
+    pub name: String,
+}
+
+impl MissingModelPropertyError {
+    pub fn new(name: &str) -> Self {
+        Self {
+            name: String::from(name),
+        }
+    }
+}
+
+impl fmt::Display for MissingModelPropertyError {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt.write_str(format!("Missing model property: {}", self.name).as_str())
+    }
+}
+
+impl Context for MissingModelPropertyError {}

@@ -2,82 +2,56 @@ use async_trait::async_trait;
 use aws_sdk_dynamodb::types::SdkError;
 use aws_sdk_dynamodb::Client;
 use aws_sdk_dynamodb::{error::ScanError, model::AttributeValue};
-use error_stack::{Context, Report};
+use error_stack::Report;
 use serde_json::{json, Value};
 use std::collections::HashMap;
-use std::fmt;
 use tokio_stream::StreamExt;
 
 use crate::handlers::commands::CommandsParser;
-use crate::models::common::AsDynamoDBAttributeValue;
+use crate::models::common::{AsDynamoDBAttributeValue, MissingModelPropertyError};
 use crate::models::handlers::{HandlerCreate, HandlerError, HandlerList};
 use crate::models::project::{Project, ProjectCreatePayload};
-
-#[derive(Debug)]
-pub struct MissingProjectPropertyError {
-    pub name: String,
-}
-
-impl MissingProjectPropertyError {
-    pub fn new(name: &str) -> Self {
-        Self {
-            name: String::from(name),
-        }
-    }
-}
-
-impl fmt::Display for MissingProjectPropertyError {
-    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt.write_str(format!("Missing project property: {}", self.name).as_str())
-    }
-}
-
-impl Context for MissingProjectPropertyError {}
 
 pub struct ProjectParser {}
 impl ProjectParser {
     pub fn parse(
         item: HashMap<String, AttributeValue>,
-    ) -> Result<Project, Report<MissingProjectPropertyError>> {
+    ) -> Result<Project, Report<MissingModelPropertyError>> {
         let uuid = match item.get("uuid") {
             Some(value) => value.as_s().unwrap().to_string(),
 
-            None => return Err(Report::new(MissingProjectPropertyError::new("uuid"))),
+            None => return Err(Report::new(MissingModelPropertyError::new("uuid"))),
         };
 
         let name = match item.get("name") {
             Some(value) => value.as_s().unwrap().to_string(),
-            None => return Err(Report::new(MissingProjectPropertyError::new("name"))),
+            None => return Err(Report::new(MissingModelPropertyError::new("name"))),
         };
 
         let repository = match item.get("repository") {
             Some(value) => value.as_s().unwrap().to_string(),
-            None => return Err(Report::new(MissingProjectPropertyError::new("repository"))),
+            None => return Err(Report::new(MissingModelPropertyError::new("repository"))),
         };
 
         let commands = match item.get("commands") {
             Some(value) => match CommandsParser::parse(value.as_m().unwrap().to_owned()) {
                 Ok(value) => value,
                 Err(error) => {
-                    return Err(error.change_context(MissingProjectPropertyError::new("commands")))
+                    return Err(error.change_context(MissingModelPropertyError::new("commands")))
                 }
             },
-            None => return Err(Report::new(MissingProjectPropertyError::new("commands"))),
+            None => return Err(Report::new(MissingModelPropertyError::new("commands"))),
         };
 
         let output_folder = match item.get("output_folder") {
             Some(value) => value.as_s().unwrap().to_string(),
-            None => {
-                return Err(Report::new(MissingProjectPropertyError::new(
-                    "output_folder",
-                )))
-            }
+            None => return Err(Report::new(MissingModelPropertyError::new("output_folder"))),
         };
 
         let last_published = match item.get("last_published") {
             Some(value) => value.as_s().unwrap().to_string(),
             None => {
-                return Err(Report::new(MissingProjectPropertyError::new(
+                return Err(Report::new(MissingModelPropertyError::new(
                     "last_published",
                 )))
             }
@@ -95,7 +69,7 @@ impl ProjectParser {
 
     pub fn json(
         item: HashMap<String, AttributeValue>,
-    ) -> Result<Value, Report<MissingProjectPropertyError>> {
+    ) -> Result<Value, Report<MissingModelPropertyError>> {
         match ProjectParser::parse(item) {
             Ok(parsed) => Ok(json!(parsed)),
             Err(err) => Err(err),
