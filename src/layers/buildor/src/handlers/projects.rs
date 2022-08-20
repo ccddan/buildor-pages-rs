@@ -86,7 +86,7 @@ mod project_parser_tests {
     fn fails_on_missing_uuid() {
         let input: HashMap<String, AttributeValue> = HashMap::new();
         match ProjectParser::parse(input) {
-            Err(error) => assert_eq!(error.to_string(), "Missing project property: uuid"),
+            Err(error) => assert_eq!(error.to_string(), "Missing model property: uuid"),
             _ => assert_eq!("", "Should have panicked but it did not"),
         }
     }
@@ -99,7 +99,7 @@ mod project_parser_tests {
             AttributeValue::S("uuid-value".to_string()),
         );
         match ProjectParser::parse(input) {
-            Err(error) => assert_eq!(error.to_string(), "Missing project property: name"),
+            Err(error) => assert_eq!(error.to_string(), "Missing model property: name"),
             _ => assert_eq!("", "Should have panicked but it did not"),
         }
     }
@@ -117,7 +117,7 @@ mod project_parser_tests {
         );
 
         match ProjectParser::parse(input) {
-            Err(error) => assert_eq!(error.to_string(), "Missing project property: repository"),
+            Err(error) => assert_eq!(error.to_string(), "Missing model property: repository"),
             _ => assert_eq!("", "Should have panicked but it did not"),
         }
     }
@@ -139,7 +139,7 @@ mod project_parser_tests {
         );
 
         match ProjectParser::parse(input) {
-            Err(error) => assert_eq!(error.to_string(), "Missing project property: commands"),
+            Err(error) => assert_eq!(error.to_string(), "Missing model property: commands"),
             _ => assert_eq!("", "Should have panicked but it did not"),
         }
     }
@@ -165,7 +165,7 @@ mod project_parser_tests {
         );
 
         match ProjectParser::parse(input) {
-            Err(error) => assert_eq!(error.to_string(), "Missing project property: output_folder"),
+            Err(error) => assert_eq!(error.to_string(), "Missing model property: output_folder"),
             _ => assert_eq!("", "Should have panicked but it did not"),
         }
     }
@@ -195,10 +195,7 @@ mod project_parser_tests {
         );
 
         match ProjectParser::parse(input) {
-            Err(error) => assert_eq!(
-                error.to_string(),
-                "Missing project property: last_published"
-            ),
+            Err(error) => assert_eq!(error.to_string(), "Missing model property: last_published"),
             _ => assert_eq!("", "Should have panicked but it did not"),
         }
     }
