@@ -19,7 +19,6 @@ impl ProjectParser {
     ) -> Result<Project, Report<MissingModelPropertyError>> {
         let uuid = match item.get("uuid") {
             Some(value) => value.as_s().unwrap().to_string(),
-
             None => return Err(Report::new(MissingModelPropertyError::new("uuid"))),
         };
 

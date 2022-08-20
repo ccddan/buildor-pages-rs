@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::models::common::AsDynamoDBAttributeValue;
+use crate::models::common::{AsDynamoDBAttributeValue, MissingModelPropertyError};
 use crate::models::handlers::{HandlerCreate, HandlerError, HandlerList};
 use crate::models::user::{User, UserCreatePayload};
 use async_trait::async_trait;
@@ -13,16 +13,34 @@ use tokio_stream::StreamExt;
 
 pub struct UsersParser {}
 impl UsersParser {
-    pub fn parse(item: HashMap<String, AttributeValue>) -> User {
-        let uuid = item.get("uuid").unwrap().as_s().unwrap().to_string();
-        let fname = item.get("fname").unwrap().as_s().unwrap().to_string();
-        let lname = item.get("lname").unwrap().as_s().unwrap().to_string();
+    pub fn parse(
+        item: HashMap<String, AttributeValue>,
+    ) -> Result<User, Report<MissingModelPropertyError>> {
+        let uuid = match item.get("uuid") {
+            Some(value) => value.as_s().unwrap().to_string(),
+            None => return Err(Report::new(MissingModelPropertyError::new("uuid"))),
+        };
 
-        User { uuid, fname, lname }
+        let fname = match item.get("fname") {
+            Some(value) => value.as_s().unwrap().to_string(),
+            None => return Err(Report::new(MissingModelPropertyError::new("fname"))),
+        };
+
+        let lname = match item.get("lname") {
+            Some(value) => value.as_s().unwrap().to_string(),
+            None => return Err(Report::new(MissingModelPropertyError::new("lname"))),
+        };
+
+        Ok(User { uuid, fname, lname })
     }
 
-    pub fn json(item: HashMap<String, AttributeValue>) -> Value {
-        json!(UsersParser::parse(item))
+    pub fn json(
+        item: HashMap<String, AttributeValue>,
+    ) -> Result<Value, Report<MissingModelPropertyError>> {
+        match UsersParser::parse(item) {
+            Ok(parsed) => Ok(json!(parsed)),
+            Err(error) => Err(error),
+        }
     }
 }
 
@@ -86,9 +104,19 @@ impl HandlerList<User, HandlerError> for UsersHandler {
             Ok(res) => {
                 println!("UserHandler::list - parse users");
                 for item in res {
-                    let user = UsersParser::parse(item);
-                    println!("UserHandler::list - user: {:?}", user);
-                    data.push(user);
+                    println!("UsersParser::list - parse record: {:?}", &item);
+                    match UsersParser::parse(item) {
+                        Ok(parsed) => {
+                            println!("UsersHandler::list - user: {:?}", parsed);
+                            data.push(parsed);
+                        }
+                        Err(error) => {
+                            println!(
+                                "UsersParser::list - parse error (skip from result): {}",
+                                error
+                            )
+                        }
+                    };
                 }
             }
             Err(err) => {
