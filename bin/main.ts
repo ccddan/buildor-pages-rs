@@ -5,6 +5,7 @@ import "source-map-support/register";
 import config from "../config";
 import { APIDeploymentStack } from "../lib/api/api-deployment-stack";
 import { APIProjectsStack } from "../lib/api/api-projects-stack";
+import { APIProjectDeploymentsStack } from "../lib/api/api-project-deployments-stack";
 import { APIStack } from "../lib/api/api-stack";
 import { APIUsersStack } from "../lib/api/api-users-stack";
 import { DeployStack } from "../lib/deploy-stack";
@@ -37,6 +38,11 @@ const apiProjectsStack = new APIProjectsStack(
   app,
   config.app.name("APIProjectsStack"),
   { env }
+);
+const apiProjectDeploymentsStack = new APIProjectDeploymentsStack(
+  app,
+  config.app.name("APIProjectDeploymentsStack"),
+  { env },
 );
 
 const apiDeploymentStack = new APIDeploymentStack(

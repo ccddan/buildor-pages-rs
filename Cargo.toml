@@ -13,5 +13,8 @@ members = [
   # API - Projects
   "src/api/projects/post",
   "src/api/projects/list",
-  "src/api/projects/deploy/post",
+
+  # API - Project Deployments
+  "src/api/project-deployments/post",
+  "src/api/project-deployments/deployment/get",
 ]

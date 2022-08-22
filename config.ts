@@ -36,6 +36,10 @@ const config = {
         tableArn: `/${APP_PREFIX}/tables/projects/tableArn`,
         streamArn: `/${APP_PREFIX}/tables/projects/streamArn`,
       },
+      projectDeployments: {
+        tableArn: `/${APP_PREFIX}/tables/projectDeployments/tableArn`,
+        streamArn: `/${APP_PREFIX}/tables/projectDeployments/streamArn`,
+      },
     },
   },
 };

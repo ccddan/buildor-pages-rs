@@ -17,6 +17,7 @@ import { OutputStack } from "./utils/output-stack";
 export enum Tables {
   Users = "Users",
   Projects = "Projects",
+  ProjectDeployments = "ProjectDeployments",
 }
 
 export class TablesStack extends OutputStack {
@@ -51,11 +52,27 @@ export class TablesStack extends OutputStack {
       config.ssm.tables.projects.tableArn,
       projects.tableArn
     );
-
     this.outputSSM(
       config.app.name(`${Tables.Projects}StreamSSM`),
       config.ssm.tables.projects.streamArn,
       projects.tableStreamArn!
+    );
+
+    const projectDeployments = new Table(this, Tables.ProjectDeployments, {
+      partitionKey: { name: "uuid", type: AttributeType.STRING },
+      billingMode: BillingMode.PAY_PER_REQUEST,
+      stream: StreamViewType.NEW_AND_OLD_IMAGES,
+    });
+
+    this.outputSSM(
+      config.app.name(`${Tables.ProjectDeployments}SSM`),
+      config.ssm.tables.projectDeployments.tableArn,
+      projectDeployments.tableArn,
+    );
+    this.outputSSM(
+      config.app.name(`${Tables.ProjectDeployments}StreamSSM`),
+      config.ssm.tables.projectDeployments.streamArn,
+      projectDeployments.tableStreamArn!,
     );
   }
 
@@ -63,8 +80,7 @@ export class TablesStack extends OutputStack {
     const tableArn = StringParameter.fromStringParameterName(
       scope,
       `${table}TableArn`,
-      config.ssm.tables[table.toLowerCase() as keyof typeof config.ssm.tables]
-        .tableArn
+      config.ssm.tables[`${table[0].toLowerCase()}${table.substring(1)}` as keyof typeof config.ssm.tables].tableArn
     ).stringValue;
 
     return Table.fromTableArn(scope, `${table}Table`, tableArn);
@@ -74,13 +90,12 @@ export class TablesStack extends OutputStack {
     const tableArn = StringParameter.fromStringParameterName(
       scope,
       `${table}TableArn`,
-      config.ssm.tables[table.toLowerCase() as keyof typeof config.ssm.tables]
-        .tableArn
+      config.ssm.tables[`${table[0].toLowerCase()}${table.substring(1)}` as keyof typeof config.ssm.tables].tableArn
     ).stringValue;
     const tableStreamArn = StringParameter.fromStringParameterName(
       scope,
       `${table}StreamArn`,
-      config.ssm.tables[table.toLowerCase() as keyof typeof config.ssm.tables]
+      config.ssm.tables[`${table[0].toLowerCase()}${table.substring(1)}` as keyof typeof config.ssm.tables]
         .streamArn
     ).stringValue;
 

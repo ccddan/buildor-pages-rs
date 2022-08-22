@@ -12,7 +12,20 @@ dependencies = [
 ]
 
 [[package]]
-name = "api-projects-deploy-post"
+name = "api-project-deployments-get"
+version = "0.1.0"
+dependencies = [
+ "buildor",
+ "env_logger",
+ "error-stack",
+ "lambda_runtime",
+ "log",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
+name = "api-project-deployments-post"
 version = "0.1.0"
 dependencies = [
  "aws-config",
