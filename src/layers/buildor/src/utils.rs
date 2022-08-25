@@ -1,7 +1,8 @@
 use crate::models::common::RequiredEnvVarError;
-use aws_sdk_codebuild::Client as CodebuildClient;
+use crate::models::request::PathParameterError;
 use aws_sdk_dynamodb::Client as DynamoClient;
 use error_stack::Report;
+use serde_json::Value;
 
 pub fn load_env_var(
     name: &str,
@@ -75,3 +76,18 @@ mod clients_tests {
         let _ = Clients::codebuild().await;
     }
 }
+
+pub fn get_path_parameter(key: &str, event: &Value) -> Result<String, Report<PathParameterError>> {
+    match event.get("pathParameters") {
+        None => Err(Report::new(PathParameterError::new(
+            "No path parameters found",
+        ))),
+        Some(params) => match params.get(key) {
+            None => Err(Report::new(PathParameterError::new(
+                format!("Path parameter \"{}\" not found", key).as_str(),
+            ))),
+            Some(value) => Ok(value.to_string()),
+        },
+    }
+}
+

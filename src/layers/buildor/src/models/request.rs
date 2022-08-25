@@ -1,4 +1,6 @@
+use error_stack::Context;
 use serde_derive::Serialize;
+use std::fmt;
 
 #[derive(Serialize, Debug)]
 pub struct RequestError {
@@ -23,3 +25,21 @@ impl RequestError {
         }
     }
 }
+
+#[derive(Debug)]
+pub struct PathParameterError {
+    pub error: String,
+}
+impl PathParameterError {
+    pub fn new(error: &str) -> Self {
+        Self {
+            error: String::from(error),
+        }
+    }
+}
+impl fmt::Display for PathParameterError {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt.write_str(format!("Path parameter error: {}", self.error).as_str())
+    }
+}
+impl Context for PathParameterError {}

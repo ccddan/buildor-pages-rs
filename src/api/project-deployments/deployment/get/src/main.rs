@@ -1,6 +1,6 @@
 use buildor::{
     models::{common::ExecutionError, request::RequestError},
-    utils::{load_env_var, Clients},
+    utils::{get_path_parameter, load_env_var, Clients},
 };
 use error_stack::{Report, ResultExt};
 use lambda_runtime::{service_fn, LambdaEvent};
@@ -42,6 +42,12 @@ async fn handler(event: LambdaEvent<Value>) -> Result<Value, Report<ExecutionErr
     let (event, context) = event.into_parts();
     println!("event: {:?}", event);
     println!("context: {:?}", context);
+
+    let deployment_uuid = get_path_parameter("deployment", &event);
+    match deployment_uuid {
+        Ok(uuid) => println!("uuid: {}", uuid),
+        Err(error) => return Ok(json!({ "msg": error.to_string() })),
+    };
 
     let _table = Clients::dynamodb().await;
 
