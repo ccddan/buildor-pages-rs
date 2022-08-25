@@ -1,3 +1,4 @@
+pub mod codebuild;
 pub mod commands;
 pub mod common;
 pub mod handlers;

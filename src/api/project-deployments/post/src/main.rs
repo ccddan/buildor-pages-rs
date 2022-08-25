@@ -1,7 +1,7 @@
 use aws_sdk_codebuild::model::{EnvironmentVariable, EnvironmentVariableType};
 use buildor::{
     models::{common::ExecutionError, request::RequestError, response::Response},
-    utils::{load_env_var, Clients},
+    utils::{get_build_info, load_env_var, Clients},
 };
 use error_stack::{Report, ResultExt};
 use lambda_runtime::{service_fn, LambdaEvent};
@@ -138,7 +138,9 @@ async fn handler(event: LambdaEvent<Value>) -> Result<Value, Report<ExecutionErr
     match tx.send().await {
         Ok(result) => {
             println!("Result: {:?}", result);
-            Ok(Response::new(json!({ "ok": format!("{:?}", result) }), 200))
+            println!("Parse build info");
+            let build_info = get_build_info(&result);
+            Ok(Response::new(json!({ "build": build_info }), 200))
         }
         Err(err) => {
             println!("Error: {}", err);
