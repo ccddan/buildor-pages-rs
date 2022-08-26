@@ -1,7 +1,6 @@
 use async_trait::async_trait;
 use aws_sdk_dynamodb::Client;
-use error_stack::Context;
-use error_stack::Report;
+use error_stack::{Context, Report};
 use std::fmt;
 
 #[derive(Debug)]
@@ -35,6 +34,13 @@ pub trait HandlerCreate<T, PC, CE> {
     /// PC = Payload Create. Payload to create objects of type T.
     /// CE = Create error
     async fn create(&self, payload: PC) -> Result<T, Report<CE>>;
+}
+
+#[async_trait]
+pub trait HandlerGet<T, GE> {
+    /// T = Main handler type (Project, User, etc.)
+    /// GE = Update error
+    async fn get(&self, uuid: String) -> Result<Option<T>, Report<GE>>;
 }
 
 #[async_trait]
