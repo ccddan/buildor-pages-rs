@@ -1,10 +1,13 @@
-use crate::models::codebuild::BuildInfo;
-use crate::models::common::RequiredEnvVarError;
-use crate::models::request::PathParameterError;
 use aws_sdk_codebuild::{model::StatusType, output::StartBuildOutput, Client as CodebuildClient};
 use aws_sdk_dynamodb::Client as DynamoClient;
 use error_stack::Report;
+use serde::Deserialize;
 use serde_json::Value;
+
+use crate::models::codebuild::BuildInfo;
+use crate::models::common::CommonError;
+use crate::models::common::RequiredEnvVarError;
+use crate::models::request::{PathParameterError, RequestError};
 
 pub fn load_env_var(
     name: &str,
@@ -132,6 +135,21 @@ pub fn get_build_info(build: &StartBuildOutput) -> Option<BuildInfo> {
                 current_phase,
                 build_status,
             })
+        }
+    }
+}
+
+pub fn parse_request_body_payload<'a, T: Deserialize<'a>>(
+    body: &'a Value,
+) -> Result<T, RequestError> {
+    let body_str: &'a str = body.as_str().unwrap();
+    match serde_json::from_str::<T>(&body_str) {
+        Ok(valid) => Ok(valid),
+        Err(err) => {
+            println!("Body payload not compliant: {}", err);
+            Err(CommonError::schema_compliant(
+                format!("Body payload not compliant: {}", err).to_string(),
+            ))
         }
     }
 }
