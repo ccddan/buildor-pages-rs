@@ -1,7 +1,5 @@
 use async_trait::async_trait;
-use aws_sdk_dynamodb::types::SdkError;
-use aws_sdk_dynamodb::Client;
-use aws_sdk_dynamodb::{error::ScanError, model::AttributeValue};
+use aws_sdk_dynamodb::{error::ScanError, model::AttributeValue, types::SdkError, Client};
 use error_stack::Report;
 use serde_json::{json, Value};
 use std::collections::HashMap;
@@ -9,7 +7,7 @@ use tokio_stream::StreamExt;
 
 use crate::handlers::commands::CommandsParser;
 use crate::models::common::{AsDynamoDBAttributeValue, MissingModelPropertyError};
-use crate::models::handlers::{HandlerCreate, HandlerError, HandlerList};
+use crate::models::handlers::{HandlerCreate, HandlerError, HandlerGet, HandlerList};
 use crate::models::project::{Project, ProjectCreatePayload};
 
 pub struct ProjectParser {}
@@ -284,5 +282,42 @@ impl HandlerList<Project, HandlerError> for ProjectsHandler {
         };
 
         Ok(data)
+    }
+}
+#[async_trait]
+impl HandlerGet<Project, HandlerError> for ProjectsHandler {
+    async fn get(&self, uuid: String) -> Result<Option<Project>, Report<HandlerError>> {
+        //
+        println!("ProjectsHandler::create - uuid: {:?}", uuid);
+
+        let tx = self
+            .table
+            .get_item()
+            .table_name(&self.table_name)
+            .key("uuid".to_string(), AttributeValue::S(uuid));
+
+        println!("ProjectsHandler::create - send tx");
+        let result = tx.send().await;
+        println!("ProjectsHandler::create - tx response: {:?}", result);
+
+        match result {
+            Ok(res) => {
+                println!("ProjectsHandler::create - record: {:?}", res);
+                match res.item {
+                    Some(value) => match ProjectParser::parse(value) {
+                        Ok(project) => Ok(Some(project)),
+                        Err(error) => {
+                            println!("ProjectsHandler::get - failed to parse project: {}", error);
+                            Ok(None)
+                        }
+                    },
+                    None => Ok(None),
+                }
+            }
+            Err(err) => {
+                println!("ProjectsHandler::create - failed to create user: {:?}", err);
+                Err(Report::new(HandlerError::new(&err.to_string())))
+            }
+        }
     }
 }
