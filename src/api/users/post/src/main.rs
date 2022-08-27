@@ -1,19 +1,18 @@
+use error_stack::{Report, ResultExt};
+use lambda_runtime::{service_fn, LambdaEvent};
+use serde_json::{json, Value};
+
+use buildor::models::handlers::HandlerCreate;
 use buildor::{
     handlers::users::UsersHandler,
     models::{
-        common::{CommonError, ExecutionError},
+        common::ExecutionError,
         request::RequestError,
         response::Response,
         user::{UserCreatePayload, UserError},
     },
-    utils::{load_env_var, Clients},
+    utils::{load_env_var, parse_request_body_payload, Clients},
 };
-use error_stack::{Report, ResultExt};
-use lambda_runtime::{service_fn, LambdaEvent};
-use serde_json::{json, Value};
-use std::borrow::Cow;
-
-use buildor::models::handlers::HandlerCreate;
 
 #[tokio::main]
 async fn main() -> Result<(), Value> {
@@ -52,23 +51,13 @@ async fn handler(event: LambdaEvent<Value>) -> Result<Value, Report<ExecutionErr
     println!("event: {:?}", event);
     println!("context: {:?}", context);
 
+    // Body Payload
     println!("Parse body payload");
-    let body: UserCreatePayload;
-    let b = event["body"].to_owned();
-    let foo: Cow<'_, str> = Cow::from(b.as_str().unwrap());
-
-    match serde_json::from_str::<UserCreatePayload>(&foo) {
-        Ok(valid) => body = valid,
-        Err(err) => {
-            println!("Body payload not compliant: {}", err);
-            return Ok(Response::new(
-                json!(CommonError::schema_compliant(
-                    format!("Body payload not compliant: {}", err).to_string()
-                )),
-                400,
-            ));
-        }
-    }
+    let body = match parse_request_body_payload::<UserCreatePayload>(&event["body"]) {
+        Ok(value) => value,
+        Err(err) => return Ok(json!(err)),
+    };
+    println!("Body: {:?}", body);
 
     let table = Clients::dynamodb().await;
     let uh = UsersHandler::new(table, TABLE_NAME);
