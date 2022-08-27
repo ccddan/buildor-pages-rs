@@ -17,4 +17,7 @@ members = [
   # API - Project Deployments
   "src/api/project-deployments/post",
   "src/api/project-deployments/deployment/get",
+
+  # CodeBuild Deployments
+  "src/codebuild/events/processing",
 ]
