@@ -20,4 +20,7 @@ members = [
 
   # CodeBuild Deployments
   "src/codebuild/events/processing",
+
+  # Utils - Buildor Tester
+  "src/utils/buildor-tester",
 ]
