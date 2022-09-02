@@ -41,6 +41,11 @@ const config = {
         streamArn: `/${APP_PREFIX}/tables/projectDeployments/streamArn`,
       },
     },
+    codebuild: {
+      project: {
+        name: `/${APP_PREFIX}/codebuild/project/name`,
+      },
+    },
   },
 };
 
