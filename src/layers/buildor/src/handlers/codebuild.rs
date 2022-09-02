@@ -136,3 +136,36 @@ impl BuildInfoParser {
         }
     }
 }
+
+pub struct CodeBuildHandler {
+    client: Client,
+    project_name: String,
+}
+
+impl CodeBuildHandler {
+    pub fn new(client: Client, project_name: String) -> Self {
+        Self {
+            client,
+            project_name,
+        }
+    }
+
+    pub async fn get(&self, id: String) -> Result<Option<BuildInfo>, Report<HandlerError>> {
+        info!("CodeBuildHandler::get - id: {}", id);
+
+        let mut ids: Vec<String> = Vec::new();
+        ids.push(String::from(format!("{}:{}", self.project_name, id)));
+        let tx = self.client.batch_get_builds().set_ids(Some(ids));
+
+        match tx.send().await {
+            Ok(result) => {
+                debug!("CodeBuildHandler::get - get build response: {:?}", result);
+                Ok(get_build_info(&BuildObject::Builds(result.builds)))
+            }
+            Err(error) => {
+                error!("ProjectsHandler::create - failed to get build: {:?}", error);
+                Err(Report::new(HandlerError::new(&error.to_string())))
+            }
+        }
+    }
+}
