@@ -275,17 +275,20 @@ impl CodeBuildHandler {
     pub async fn get(&self, id: String) -> Result<Option<BuildInfo>, Report<HandlerError>> {
         info!("CodeBuildHandler::get - id: {}", id);
 
+        debug!("CodeBuildHandler::get - build ids parameter");
         let mut ids: Vec<String> = Vec::new();
         ids.push(String::from(format!("{}:{}", self.project_name, id)));
+
+        debug!("CodeBuildHandler::get - tx preparation");
         let tx = self.client.batch_get_builds().set_ids(Some(ids));
 
         match tx.send().await {
             Ok(result) => {
-                debug!("CodeBuildHandler::get - get build response: {:?}", result);
+                debug!("CodeBuildHandler::get - tx result: {:?}", result);
                 Ok(get_build_info(&BuildObject::Builds(result.builds)))
             }
             Err(error) => {
-                error!("ProjectsHandler::create - failed to get build: {:?}", error);
+                error!("CodeBuildHandler::get - failed to get build: {:?}", error);
                 Err(Report::new(HandlerError::new(&error.to_string())))
             }
         }
