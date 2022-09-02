@@ -16,7 +16,7 @@ async fn main() {
     let codebuild_project_name = String::from("App-Dynamically-Deploy-SPAs");
     println!("Define CodeBuild project name: {}", codebuild_project_name);
 
-    println!("Initialize CodeBuildHnalder instance.");
+    println!("Initialize CodeBuildHandler instance.");
     let cbh = CodeBuildHandler::new(codebuild_client, codebuild_project_name);
     println!("Codebuild Handler is ready.");
 
