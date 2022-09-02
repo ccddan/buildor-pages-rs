@@ -1,6 +1,9 @@
-use aws_sdk_codebuild::Client;
-use aws_sdk_codebuild::{model::Build, model::StatusType};
+use aws_sdk_codebuild::{
+    model::{Build, EnvironmentVariable, EnvironmentVariableType, StatusType},
+    Client,
+};
 use aws_sdk_dynamodb::model::AttributeValue;
+use chrono::Utc;
 use error_stack::Report;
 use log::{self, debug, error, info};
 use serde_json::{json, Value};
@@ -10,6 +13,7 @@ use crate::handlers::projects::ProjectParser;
 use crate::models::codebuild::{BuildInfo, BuildObject};
 use crate::models::common::MissingModelPropertyError;
 use crate::models::handlers::HandlerError;
+use crate::models::project::Project;
 
 fn get_build_status(status: Option<&StatusType>) -> Option<String> {
     match status {
@@ -147,6 +151,124 @@ impl CodeBuildHandler {
         Self {
             client,
             project_name,
+        }
+    }
+
+    pub async fn create(
+        &self,
+        project: &Project,
+    ) -> Result<Option<BuildInfo>, Report<HandlerError>> {
+        info!("CodeBuildHandler::create - project: {:?}", project);
+        let timestamp = Utc::now().to_string();
+
+        debug!("CodeBuildHandler::create - create pre-build commands");
+        let mut pre_build_commands = Vec::from_iter(project.commands.pre_build.iter());
+        let command_cd_into_project = "cd $PROJECT_NAME".to_string();
+        let command_pre_build_title = "####### Install Project Dependencies #######".to_string();
+        pre_build_commands.insert(0, &command_cd_into_project);
+        pre_build_commands.insert(0, &command_pre_build_title);
+
+        debug!("CodeBuildHandler::create - parse pre-build commands as string");
+        let pre_build_commands_str = pre_build_commands
+            .iter()
+            .map(|s| format!("\"{}\"", s.to_string()))
+            .collect::<Vec<String>>()
+            .join(",");
+
+        debug!("CodeBuildHandler::create - create build commands");
+        let mut build_commands = Vec::from_iter(project.commands.build.iter());
+        let command_build_title = "echo Build project".to_string();
+        let command_move_build_output = format!("mv {} ../dist", project.output_folder);
+        build_commands.insert(0, &command_build_title);
+        build_commands.push(&command_move_build_output);
+
+        debug!("CodeBuildHandler::create - parse build commands as string");
+        let build_commands_str = build_commands
+            .iter()
+            .map(|s| format!("\"{}\"", s.to_string()))
+            .collect::<Vec<String>>()
+            .join(",");
+
+        let artifacts_output_name = format!("{}-dist-{}.zip", project.name, timestamp);
+        debug!("CodeBuildHandler::create - parse buildspec");
+        let build_spec = format!(
+            r###"
+            {{
+              "version": "0.2",
+              "env": {{
+                "variables": {{
+                  "MY_ENV_VAR": "value"
+                }}
+              }},
+              "phases": {{
+                "install": {{
+                  "commands": [
+                    "echo Download project",
+                    "node -v",
+                    "git clone $REPO_URL $PROJECT_NAME"
+                  ]
+                }},
+                "pre_build": {{
+                  "commands": [{pre_build_commands_str}]
+                }},
+                "build": {{
+                  "commands": [{build_commands_str}]
+                }},
+                "post_build": {{
+                  "commands": ["echo Build has completed and artifacts were moved"]
+                }}
+              }},
+              "artifacts": {{
+                "discard-paths": "no",
+                "files": ["dist/**/*"],
+                "name": "{artifacts_output_name}"
+              }}
+            }}
+            "###
+        );
+
+        debug!("CodeBuildHandler::create - tx preparation");
+        let tx = self
+            .client
+            .start_build()
+            .project_name(self.project_name.to_string())
+            .environment_variables_override(
+                EnvironmentVariable::builder()
+                    .set_name(Some("PROJECT_NAME".to_string()))
+                    .set_value(Some(project.name.to_string()))
+                    .set_type(Some(EnvironmentVariableType::Plaintext))
+                    .build(),
+            )
+            .environment_variables_override(
+                EnvironmentVariable::builder()
+                    .set_name(Some("REPO_URL".to_string()))
+                    .set_value(Some(project.repository.to_string()))
+                    .set_type(Some(EnvironmentVariableType::Plaintext))
+                    .build(),
+            )
+            .buildspec_override(build_spec);
+
+        match tx.send().await {
+            Ok(result) => {
+                debug!("CodeBuildHandler::create - tx result: {:?}", result);
+                debug!("CodeBuildHandler::create - parse build info");
+                match get_build_info(&BuildObject::StartBuildOutput(result)) {
+                    Some(build_info) => Ok(Some(build_info)),
+                    None => {
+                        debug!("CodeBuildHandler::create - code info parsing failed");
+                        Err(Report::new(HandlerError::new(
+                            "Failed to parse build result into BuildIngo",
+                        )))
+                    }
+                }
+            }
+            Err(error) => {
+                error!(
+                    "CodeBuildHandler::create - failed to create build: {:?}",
+                    error
+                );
+                Err(Report::new(HandlerError::new(&error.to_string())))
+            }
         }
     }
 
