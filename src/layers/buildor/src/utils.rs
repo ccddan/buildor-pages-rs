@@ -62,7 +62,27 @@ impl Clients {
     }
 
     pub async fn codebuild() -> CodebuildClient {
-        let config = aws_config::load_from_env().await;
+        //let profile_provider = profile::ProfileFileCredentialsProvider::builder()
+        //.profile_name("cc")
+        //.build();
+        //let config = from_env()
+        //.credentials_provider(profile_provider)
+        //.region("us-west-2")
+        //.retry_config(
+        //RetryConfig::new()
+        //.with_max_attempts(1)
+        //)
+        //.load()
+        //.await;
+
+        //let env_provider = environment::credentials::EnvironmentVariableCredentialsProvider::new();
+        //let config = from_env()
+        //.credentials_provider(env_provider)
+        //.region(Region::new("us-west-2"))
+        //.retry_config(RetryConfig::new().with_max_attempts(1))
+        //.load()
+        //.await;
+        let config = load_from_env().await; // automatically reads credentials/region/profile env vars
         CodebuildClient::new(&config)
     }
 }
