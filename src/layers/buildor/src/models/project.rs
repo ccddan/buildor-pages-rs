@@ -24,6 +24,16 @@ pub struct ProjectCreatePayload {
     pub commands: Option<Commands>,
     pub output_folder: Option<String>,
 }
+impl ProjectCreatePayload {
+    pub fn default(name: String, repository: String) -> Self {
+        Self {
+            name,
+            repository,
+            commands: None,
+            output_folder: None,
+        }
+    }
+}
 
 impl Project {
     pub fn new(payload: ProjectCreatePayload) -> Self {
