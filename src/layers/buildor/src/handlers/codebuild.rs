@@ -1,11 +1,77 @@
+use aws_sdk_codebuild::Client;
+use aws_sdk_codebuild::{model::Build, model::StatusType};
 use aws_sdk_dynamodb::model::AttributeValue;
 use error_stack::Report;
+use log::{self, debug, error, info};
 use serde_json::{json, Value};
 use std::collections::HashMap;
 
 use crate::handlers::projects::ProjectParser;
-use crate::models::codebuild::BuildInfo;
+use crate::models::codebuild::{BuildInfo, BuildObject};
 use crate::models::common::MissingModelPropertyError;
+use crate::models::handlers::HandlerError;
+
+fn get_build_status(status: Option<&StatusType>) -> Option<String> {
+    match status {
+        Some(value) => Some(match value {
+            StatusType::Failed => String::from("Failed"),
+            StatusType::Fault => String::from("Fault"),
+            StatusType::InProgress => String::from("InProgress"),
+            StatusType::Stopped => String::from("Stopped"),
+            StatusType::TimedOut => String::from("TimedOut"),
+            StatusType::Succeeded => String::from("Succeeded"),
+            _ => String::from("Unknown"),
+        }),
+        None => None,
+    }
+}
+
+fn parse_build_info(build: &Build) -> Option<BuildInfo> {
+    let uuid = build.id.to_owned().unwrap().split(":").last()?.to_string();
+    let build_number = build.build_number;
+    let start_time = match build.start_time() {
+        Some(value) => Some(value.to_millis().unwrap()),
+        None => None,
+    };
+    let end_time = match build.end_time() {
+        Some(value) => Some(value.to_millis().unwrap()),
+        None => None,
+    };
+    let current_phase = match build.current_phase() {
+        Some(value) => Some(String::from(value)),
+        None => None,
+    };
+    let build_status = get_build_status(build.build_status());
+
+    Some(BuildInfo {
+        uuid,
+        build_number,
+        start_time,
+        end_time,
+        current_phase,
+        build_status,
+    })
+}
+
+pub fn get_build_info(build: &BuildObject) -> Option<BuildInfo> {
+    match build {
+        BuildObject::Build(build) => parse_build_info(build),
+        BuildObject::Builds(builds) => match builds {
+            None => None,
+            Some(builds) => {
+                if builds.len() >= 1 {
+                    parse_build_info(&builds[0])
+                } else {
+                    None
+                }
+            }
+        },
+        BuildObject::StartBuildOutput(build) => match build.build_value() {
+            Some(build) => parse_build_info(build),
+            None => None,
+        },
+    }
+}
 
 pub struct BuildInfoParser {}
 impl BuildInfoParser {

@@ -4,8 +4,12 @@ use lambda_runtime::{service_fn, LambdaEvent};
 use serde_json::{json, Value};
 
 use buildor::{
-    handlers::{project_deployments::ProjectDeploymentsHandler, projects::ProjectsHandler},
+    handlers::{
+        codebuild::get_build_info, project_deployments::ProjectDeploymentsHandler,
+        projects::ProjectsHandler,
+    },
     models::{
+        codebuild::BuildObject,
         common::ExecutionError,
         handlers::{HandlerCreate, HandlerGet},
         project_deployment::{
@@ -15,7 +19,7 @@ use buildor::{
         request::RequestError,
         response::Response,
     },
-    utils::{get_build_info, load_env_var, parse_request_body_payload, Clients},
+    utils::{load_env_var, parse_request_body_payload, Clients},
 };
 
 #[tokio::main]
@@ -178,7 +182,7 @@ async fn handler(event: LambdaEvent<Value>) -> Result<Value, Report<ExecutionErr
         Ok(result) => {
             println!("Result: {:?}", result);
             println!("Parse build info");
-            if let Some(build_info) = get_build_info(&result) {
+            if let Some(build_info) = get_build_info(&BuildObject::StartBuildOutput(result)) {
                 println!("Create project deployment record");
                 return match pdh
                     .create(ProjectDeploymentCreatePayload {

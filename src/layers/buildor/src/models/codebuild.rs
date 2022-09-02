@@ -1,10 +1,15 @@
-use aws_sdk_codebuild::output::StartBuildOutput;
+use aws_sdk_codebuild::{model::Build, output::StartBuildOutput};
 use aws_sdk_dynamodb::model::AttributeValue;
 use serde_derive::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 use super::common::AsDynamoDBAttributeValue;
-use crate::utils::get_build_info;
+
+pub enum BuildObject {
+    Build(Build),
+    Builds(Option<Vec<Build>>),
+    StartBuildOutput(StartBuildOutput),
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct BuildInfo {
@@ -14,12 +19,6 @@ pub struct BuildInfo {
     pub end_time: Option<i64>,
     pub current_phase: Option<String>,
     pub build_status: Option<String>,
-}
-
-impl BuildInfo {
-    pub fn new(build: &StartBuildOutput) -> Self {
-        get_build_info(build).unwrap()
-    }
 }
 
 impl AsDynamoDBAttributeValue for BuildInfo {
