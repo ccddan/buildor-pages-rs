@@ -9,7 +9,7 @@ use buildor::{
         projects::ProjectsHandler,
     },
     models::{
-        common::ExecutionError,
+        common::{CommonError, ExecutionError},
         handlers::{HandlerCreate, HandlerGet},
         project_deployment::{
             ProjectDeploymentCreatePayload, ProjectDeploymentCreatePayloadRequest,
@@ -89,7 +89,7 @@ async fn handler(event: LambdaEvent<Value>) -> Result<Value, Report<ExecutionErr
         },
         Err(error) => {
             error!("Failed to get project: {}", error);
-            return Ok(json!({"error": "Item not found"}));
+            return Ok(Response::new(json!(CommonError::item_not_found(None)), 404));
         }
     };
     info!("Project: {:?}", project);
