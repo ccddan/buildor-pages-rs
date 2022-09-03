@@ -44,6 +44,17 @@ impl CommonError {
             details,
         }
     }
+
+    pub fn item_not_found(details: Option<String>) -> RequestError {
+        RequestError {
+            code: "CME01".to_string(),
+            message: "Not Found Error".to_string(),
+            details: match details {
+                Some(details) => details,
+                None => "Item not found".to_string(),
+            },
+        }
+    }
 }
 
 pub trait AsDynamoDBAttributeValue {
