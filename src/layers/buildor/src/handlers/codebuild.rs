@@ -154,10 +154,7 @@ impl CodeBuildHandler {
         }
     }
 
-    pub async fn create(
-        &self,
-        project: &Project,
-    ) -> Result<Option<BuildInfo>, Report<HandlerError>> {
+    pub async fn create(&self, project: &Project) -> Result<BuildInfo, Report<HandlerError>> {
         info!("CodeBuildHandler::create - project: {:?}", project);
         let timestamp = Utc::now().to_string();
 
@@ -253,11 +250,11 @@ impl CodeBuildHandler {
                 debug!("CodeBuildHandler::create - tx result: {:?}", result);
                 debug!("CodeBuildHandler::create - parse build info");
                 match get_build_info(&BuildObject::StartBuildOutput(result)) {
-                    Some(build_info) => Ok(Some(build_info)),
+                    Some(build_info) => Ok(build_info),
                     None => {
-                        debug!("CodeBuildHandler::create - code info parsing failed");
+                        error!("CodeBuildHandler::create - code info parsing failed, but build was created");
                         Err(Report::new(HandlerError::new(
-                            "Failed to parse build result into BuildIngo",
+                            "Failed to parse build result into BuildInfo",
                         )))
                     }
                 }
