@@ -85,7 +85,14 @@ async fn handler(event: LambdaEvent<Value>) -> Result<Value, Report<ExecutionErr
     let project = match ph.get(body.project_uuid).await {
         Ok(value) => match value {
             Some(project) => project,
-            None => return Ok(json!({"error": "Item not found"})),
+            None => {
+                return Ok(Response::new(
+                    json!(CommonError::item_not_found(Some(
+                        "Project not found".to_string()
+                    ))),
+                    404,
+                ))
+            }
         },
         Err(error) => {
             error!("Failed to get project: {}", error);
