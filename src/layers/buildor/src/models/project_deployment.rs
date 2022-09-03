@@ -68,7 +68,7 @@ pub struct ProjectDeploymentError;
 impl ProjectDeploymentError {
     pub fn creation_failed() -> RequestError {
         RequestError {
-            code: "PJE00".to_string(),
+            code: "PDE00".to_string(),
             message: "Create Project Deployment Error".to_string(),
             details: "Record creation failed but build has been triggered (probably)".to_string(),
         }
