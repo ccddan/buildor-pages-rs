@@ -2,7 +2,6 @@ use aws_sdk_dynamodb::model::AttributeValue;
 use chrono::Utc;
 use serde_derive::{Deserialize, Serialize};
 use std::collections::HashMap;
-use uuid::Uuid;
 
 use super::common::AsDynamoDBAttributeValue;
 use super::request::RequestError;
@@ -21,7 +20,7 @@ impl ProjectDeployment {
     pub fn new(project: Project, build: BuildInfo) -> Self {
         let timestamp = Utc::now().to_string();
         Self {
-            uuid: Uuid::new_v4().to_string(),
+            uuid: build.uuid.clone(),
             project,
             build,
             updated_at: String::from(&timestamp),
