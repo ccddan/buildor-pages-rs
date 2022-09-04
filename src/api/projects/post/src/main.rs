@@ -2,15 +2,14 @@ use error_stack::{Report, ResultExt};
 use lambda_runtime::{service_fn, LambdaEvent};
 use log::{self, error, info};
 use serde_json::{json, Value};
-use std::borrow::Cow;
 
 use buildor::{
     handlers::projects::ProjectsHandler,
     models::{
-        common::{CommonError, ExecutionError},
+        common::ExecutionError,
         handlers::HandlerCreate,
         project::{ProjectCreatePayload, ProjectError},
-        request::RequestError,
+        request::{Request, RequestError},
         response::Response,
     },
     utils::{load_env_var, Clients},
@@ -54,22 +53,11 @@ async fn handler(event: LambdaEvent<Value>) -> Result<Value, Report<ExecutionErr
     info!("context: {:?}", context);
 
     info!("Parse body payload");
-    let body: ProjectCreatePayload;
-    let b = event["body"].to_owned();
-    let foo: Cow<'_, str> = Cow::from(b.as_str().unwrap());
-
-    match serde_json::from_str::<ProjectCreatePayload>(&foo) {
-        Ok(valid) => body = valid,
-        Err(err) => {
-            error!("Body payload not compliant: {}", err);
-            return Ok(Response::new(
-                CommonError::schema_compliant(
-                    format!("Body payload not compliant: {}", err).to_string(),
-                ),
-                400,
-            ));
-        }
-    }
+    let body = match Request::body::<ProjectCreatePayload>(&event["body"]) {
+        Ok(value) => value,
+        Err(error) => return Ok(Response::new(error, 400)),
+    };
+    info!("Body: {:?}", body);
 
     let table = Clients::dynamodb().await;
     let ph = ProjectsHandler::new(table, TABLE_NAME);

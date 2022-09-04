@@ -1,8 +1,11 @@
 use error_stack::Context;
 use error_stack::Report;
+use serde::Deserialize as Deserializable;
 use serde_derive::Serialize;
 use serde_json::Value;
 use std::fmt;
+
+use crate::models::common::CommonError;
 
 pub struct Request;
 impl Request {
@@ -17,6 +20,19 @@ impl Request {
                 ))),
                 Some(value) => Ok(value.to_string()),
             },
+        }
+    }
+
+    pub fn body<'a, T: Deserializable<'a>>(body: &'a Value) -> Result<T, RequestError> {
+        let body_str: &'a str = body.as_str().unwrap();
+        match serde_json::from_str::<T>(&body_str) {
+            Ok(valid) => Ok(valid),
+            Err(err) => {
+                println!("Body payload not compliant: {}", err);
+                Err(CommonError::schema_compliant(
+                    format!("Body payload not compliant: {}", err).to_string(),
+                ))
+            }
         }
     }
 }

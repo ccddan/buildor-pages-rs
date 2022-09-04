@@ -2,12 +2,8 @@ use aws_config::load_from_env;
 use aws_sdk_codebuild::Client as CodebuildClient;
 use aws_sdk_dynamodb::Client as DynamoClient;
 use error_stack::Report;
-use serde::Deserialize;
-use serde_json::Value;
 
-use crate::models::common::CommonError;
 use crate::models::common::RequiredEnvVarError;
-use crate::models::request::RequestError;
 
 pub fn load_env_var(
     name: &str,
@@ -99,20 +95,5 @@ mod clients_tests {
     #[tokio::test]
     async fn resturns_codebuild_client() {
         let _ = Clients::codebuild().await;
-    }
-}
-
-pub fn parse_request_body_payload<'a, T: Deserialize<'a>>(
-    body: &'a Value,
-) -> Result<T, RequestError> {
-    let body_str: &'a str = body.as_str().unwrap();
-    match serde_json::from_str::<T>(&body_str) {
-        Ok(valid) => Ok(valid),
-        Err(err) => {
-            println!("Body payload not compliant: {}", err);
-            Err(CommonError::schema_compliant(
-                format!("Body payload not compliant: {}", err).to_string(),
-            ))
-        }
     }
 }

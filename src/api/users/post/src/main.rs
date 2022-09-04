@@ -8,11 +8,11 @@ use buildor::{
     handlers::users::UsersHandler,
     models::{
         common::ExecutionError,
-        request::RequestError,
+        request::{Request, RequestError},
         response::Response,
         user::{UserCreatePayload, UserError},
     },
-    utils::{load_env_var, parse_request_body_payload, Clients},
+    utils::{load_env_var, Clients},
 };
 
 #[tokio::main]
@@ -54,9 +54,9 @@ async fn handler(event: LambdaEvent<Value>) -> Result<Value, Report<ExecutionErr
 
     // Body Payload
     info!("Parse body payload");
-    let body = match parse_request_body_payload::<UserCreatePayload>(&event["body"]) {
+    let body = match Request::body::<UserCreatePayload>(&event["body"]) {
         Ok(value) => value,
-        Err(err) => return Ok(json!(err)),
+        Err(error) => return Ok(Response::new(error, 400)),
     };
     info!("Body: {:?}", body);
 

@@ -15,10 +15,10 @@ use buildor::{
             ProjectDeploymentCreatePayload, ProjectDeploymentCreatePayloadRequest,
             ProjectDeploymentError,
         },
-        request::RequestError,
+        request::{Request, RequestError},
         response::Response,
     },
-    utils::{load_env_var, parse_request_body_payload, Clients},
+    utils::{load_env_var, Clients},
 };
 
 #[tokio::main]
@@ -72,11 +72,10 @@ async fn handler(event: LambdaEvent<Value>) -> Result<Value, Report<ExecutionErr
 
     // Body Payload
     info!("Parse body payload");
-    let body =
-        match parse_request_body_payload::<ProjectDeploymentCreatePayloadRequest>(&event["body"]) {
-            Ok(value) => value,
-            Err(err) => return Ok(json!(err)),
-        };
+    let body = match Request::body::<ProjectDeploymentCreatePayloadRequest>(&event["body"]) {
+        Ok(value) => value,
+        Err(error) => return Ok(Response::new(error, 400)),
+    };
     info!("Body: {:?}", body);
 
     let ph = ProjectsHandler::new(Clients::dynamodb().await, TABLE_NAME_PROJECTS);
