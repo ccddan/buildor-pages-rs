@@ -18,12 +18,12 @@ pub struct ProjectDeployment {
 
 impl ProjectDeployment {
     pub fn new(project: Project, build: BuildInfo) -> Self {
-        let timestamp = Utc::now().to_string();
+        let timestamp = Utc::now().to_rfc3339().to_string();
         Self {
             uuid: build.uuid.clone(),
             project,
             build,
-            updated_at: String::from(&timestamp),
+            updated_at: timestamp.clone(),
             created_at: timestamp,
         }
     }
