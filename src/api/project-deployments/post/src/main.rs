@@ -119,7 +119,7 @@ async fn handler(event: LambdaEvent<Value>) -> Result<Value, Report<ExecutionErr
                     );
                     Ok(Response::new(
                         ProjectDeploymentError::creation_failed(),
-                        400,
+                        202,
                     ))
                 }
             };
