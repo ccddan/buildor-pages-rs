@@ -126,7 +126,7 @@ async fn handler(event: LambdaEvent<Value>) -> Result<Value, Report<ExecutionErr
         }
         Err(error) => {
             error!("Error: {}", error);
-            Ok(Response::new(CommonError::generic(error.to_string()), 200))
+            Err(error.change_context(ExecutionError))
         }
     }
 }
