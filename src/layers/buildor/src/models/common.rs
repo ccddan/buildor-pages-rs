@@ -1,5 +1,7 @@
 use aws_sdk_dynamodb::model::AttributeValue;
 use error_stack::Context;
+use serde::Serialize as Serializable;
+use serde_derive::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
 
@@ -91,3 +93,19 @@ impl fmt::Display for MissingModelPropertyError {
 }
 
 impl Context for MissingModelPropertyError {}
+
+/* Common Result List Response */
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ResponseGenericList<T: Serializable> {
+    pub items: Vec<T>,
+    pub count: usize,
+}
+
+impl<T: Serializable> ResponseGenericList<T> {
+    pub fn new(items: Vec<T>) -> Self {
+        Self {
+            count: items.len(),
+            items,
+        }
+    }
+}
