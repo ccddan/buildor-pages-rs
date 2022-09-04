@@ -7,7 +7,7 @@ use serde_json::Value;
 
 use crate::models::common::CommonError;
 use crate::models::common::RequiredEnvVarError;
-use crate::models::request::{PathParameterError, RequestError};
+use crate::models::request::RequestError;
 
 pub fn load_env_var(
     name: &str,
@@ -99,20 +99,6 @@ mod clients_tests {
     #[tokio::test]
     async fn resturns_codebuild_client() {
         let _ = Clients::codebuild().await;
-    }
-}
-
-pub fn get_path_parameter(key: &str, event: &Value) -> Result<String, Report<PathParameterError>> {
-    match event.get("pathParameters") {
-        None => Err(Report::new(PathParameterError::new(
-            "No path parameters found",
-        ))),
-        Some(params) => match params.get(key) {
-            None => Err(Report::new(PathParameterError::new(
-                format!("Path parameter \"{}\" not found", key).as_str(),
-            ))),
-            Some(value) => Ok(value.to_string()),
-        },
     }
 }
 

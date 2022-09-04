@@ -1,11 +1,15 @@
-use buildor::{
-    models::{common::ExecutionError, request::RequestError},
-    utils::{get_path_parameter, load_env_var, Clients},
-};
 use error_stack::{Report, ResultExt};
 use lambda_runtime::{service_fn, LambdaEvent};
 use log::{self, error, info};
 use serde_json::{json, Value};
+
+use buildor::{
+    models::{
+        common::ExecutionError,
+        request::{Request, RequestError},
+    },
+    utils::{load_env_var, Clients},
+};
 
 #[tokio::main]
 async fn main() -> Result<(), Value> {
@@ -44,7 +48,7 @@ async fn handler(event: LambdaEvent<Value>) -> Result<Value, Report<ExecutionErr
     info!("event: {:?}", event);
     info!("context: {:?}", context);
 
-    let deployment_uuid = get_path_parameter("deployment", &event);
+    let deployment_uuid = Request::path_parameter("deployment", &event);
     match deployment_uuid {
         Ok(uuid) => info!("uuid: {}", uuid),
         Err(error) => return Ok(json!({ "msg": error.to_string() })),

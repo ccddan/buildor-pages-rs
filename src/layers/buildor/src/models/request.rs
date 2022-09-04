@@ -1,7 +1,27 @@
 use error_stack::Context;
+use error_stack::Report;
 use serde_derive::Serialize;
+use serde_json::Value;
 use std::fmt;
 
+pub struct Request;
+impl Request {
+    pub fn path_parameter(key: &str, event: &Value) -> Result<String, Report<PathParameterError>> {
+        match event.get("pathParameters") {
+            None => Err(Report::new(PathParameterError::new(
+                "No path parameters found",
+            ))),
+            Some(params) => match params.get(key) {
+                None => Err(Report::new(PathParameterError::new(
+                    format!("Path parameter \"{}\" not found", key).as_str(),
+                ))),
+                Some(value) => Ok(value.to_string()),
+            },
+        }
+    }
+}
+
+/* Request Error */
 #[derive(Serialize, Debug)]
 pub struct RequestError {
     pub code: String,
@@ -26,6 +46,7 @@ impl RequestError {
     }
 }
 
+/* Path Parameter Error */
 #[derive(Debug)]
 pub struct PathParameterError {
     pub error: String,
