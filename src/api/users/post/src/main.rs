@@ -64,13 +64,13 @@ async fn handler(event: LambdaEvent<Value>) -> Result<Value, Report<ExecutionErr
     let uh = UsersHandler::new(table, TABLE_NAME);
 
     match uh.create(body).await {
-        Ok(user) => Ok(Response::new(json!(user), 200)),
+        Ok(user) => Ok(Response::new(user, 200)),
         Err(error) => {
             error!(
                 "Failed to create user: {}",
                 error.change_context(ExecutionError)
             );
-            Ok(Response::new(json!(UserError::creation_failed()), 400))
+            Ok(Response::new(UserError::creation_failed(), 400))
         }
     }
 }

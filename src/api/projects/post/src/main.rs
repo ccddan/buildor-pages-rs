@@ -1,20 +1,20 @@
-use buildor::{
-    handlers::projects::ProjectsHandler,
-    models::{
-        common::{CommonError, ExecutionError},
-        project::{ProjectCreatePayload, ProjectError},
-        request::RequestError,
-        response::Response,
-    },
-    utils::{load_env_var, Clients},
-};
 use error_stack::{Report, ResultExt};
 use lambda_runtime::{service_fn, LambdaEvent};
 use log::{self, error, info};
 use serde_json::{json, Value};
 use std::borrow::Cow;
 
-use buildor::models::handlers::HandlerCreate;
+use buildor::{
+    handlers::projects::ProjectsHandler,
+    models::{
+        common::{CommonError, ExecutionError},
+        handlers::HandlerCreate,
+        project::{ProjectCreatePayload, ProjectError},
+        request::RequestError,
+        response::Response,
+    },
+    utils::{load_env_var, Clients},
+};
 
 #[tokio::main]
 async fn main() -> Result<(), Value> {
@@ -63,9 +63,9 @@ async fn handler(event: LambdaEvent<Value>) -> Result<Value, Report<ExecutionErr
         Err(err) => {
             error!("Body payload not compliant: {}", err);
             return Ok(Response::new(
-                json!(CommonError::schema_compliant(
-                    format!("Body payload not compliant: {}", err).to_string()
-                )),
+                CommonError::schema_compliant(
+                    format!("Body payload not compliant: {}", err).to_string(),
+                ),
                 400,
             ));
         }
@@ -75,13 +75,13 @@ async fn handler(event: LambdaEvent<Value>) -> Result<Value, Report<ExecutionErr
     let ph = ProjectsHandler::new(table, TABLE_NAME);
 
     match ph.create(body).await {
-        Ok(project) => Ok(Response::new(json!(project), 200)),
+        Ok(project) => Ok(Response::new(project, 200)),
         Err(error) => {
             error!(
                 "Failed to create project: {}",
                 error.change_context(ExecutionError)
             );
-            Ok(Response::new(json!(ProjectError::creation_failed()), 400))
+            Ok(Response::new(ProjectError::creation_failed(), 400))
         }
     }
 }

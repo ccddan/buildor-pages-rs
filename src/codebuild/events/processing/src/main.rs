@@ -1,11 +1,12 @@
-use buildor::{
-    models::{common::ExecutionError, request::RequestError, response::Response},
-    utils::load_env_var,
-};
 use error_stack::{Report, ResultExt};
 use lambda_runtime::{service_fn, LambdaEvent};
 use log::{self, error, info};
 use serde_json::{json, Value};
+
+use buildor::{
+    models::{common::ExecutionError, request::RequestError, response::Response},
+    utils::load_env_var,
+};
 
 #[tokio::main]
 async fn main() -> Result<(), Value> {

@@ -87,16 +87,14 @@ async fn handler(event: LambdaEvent<Value>) -> Result<Value, Report<ExecutionErr
             Some(project) => project,
             None => {
                 return Ok(Response::new(
-                    json!(CommonError::item_not_found(Some(
-                        "Project not found".to_string()
-                    ))),
+                    CommonError::item_not_found(Some("Project not found".to_string())),
                     404,
                 ))
             }
         },
         Err(error) => {
             error!("Failed to get project: {}", error);
-            return Ok(Response::new(json!(CommonError::item_not_found(None)), 404));
+            return Ok(Response::new(CommonError::item_not_found(None), 404));
         }
     };
     info!("Project: {:?}", project);
@@ -114,22 +112,22 @@ async fn handler(event: LambdaEvent<Value>) -> Result<Value, Report<ExecutionErr
                 .create(ProjectDeploymentCreatePayload { project, build })
                 .await
             {
-                Ok(value) => Ok(Response::new(json!(value), 201)),
+                Ok(value) => Ok(Response::new(value, 201)),
                 Err(error) => {
                     error!(
                         "Failed to create project deployment record: {}",
                         error.change_context(ExecutionError)
                     );
                     Ok(Response::new(
-                        json!(ProjectDeploymentError::creation_failed()),
+                        ProjectDeploymentError::creation_failed(),
                         400,
                     ))
                 }
             };
         }
-        Err(err) => {
-            error!("Error: {}", err);
-            Ok(Response::new(json!({ "error": format!("{}", err) }), 200))
+        Err(error) => {
+            error!("Error: {}", error);
+            Ok(Response::new(CommonError::generic(error.to_string()), 200))
         }
     }
 }

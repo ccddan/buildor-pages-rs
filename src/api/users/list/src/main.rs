@@ -1,14 +1,18 @@
-use buildor::{
-    handlers::users::UsersHandler,
-    models::{common::ExecutionError, request::RequestError, response::Response},
-    utils::{load_env_var, Clients},
-};
 use error_stack::{Report, ResultExt};
 use lambda_runtime::{service_fn, LambdaEvent};
 use log::{self, error, info};
 use serde_json::{json, Value};
 
-use buildor::models::handlers::HandlerList;
+use buildor::{
+    handlers::users::UsersHandler,
+    models::{
+        common::{ExecutionError, ResponseGenericList},
+        handlers::HandlerList,
+        request::RequestError,
+        response::Response,
+    },
+    utils::{load_env_var, Clients},
+};
 
 #[tokio::main]
 async fn main() -> Result<(), Value> {
@@ -58,6 +62,6 @@ async fn handler(event: LambdaEvent<Value>) -> Result<Value, Report<ExecutionErr
             );
             Err(error.change_context(ExecutionError))
         }
-        Ok(users) => Ok(Response::new(json!({ "data": users }), 200)),
+        Ok(users) => Ok(Response::new(ResponseGenericList::new(users), 200)),
     }
 }

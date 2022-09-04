@@ -1,3 +1,4 @@
+use serde::Serialize as Serializable;
 use serde_derive::Serialize;
 use serde_json::{json, Value};
 
@@ -48,11 +49,11 @@ pub struct Response {
 }
 
 impl Response {
-    pub fn new(body: Value, code: u16) -> Value {
+    pub fn new<T: Serializable>(body: T, code: u16) -> Value {
         json!(Response {
             status_code: code,
             headers: ResponseHeaders::default(),
-            body: body.to_string(),
+            body: json!(body).to_string(),
         })
     }
 
