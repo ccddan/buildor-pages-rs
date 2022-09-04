@@ -7,6 +7,7 @@ use buildor::{
     models::{
         common::ExecutionError,
         request::{Request, RequestError},
+        response::Response,
     },
     utils::{load_env_var, Clients},
 };
@@ -51,7 +52,13 @@ async fn handler(event: LambdaEvent<Value>) -> Result<Value, Report<ExecutionErr
     let deployment_uuid = Request::path_parameter("deployment", &event);
     match deployment_uuid {
         Ok(uuid) => info!("uuid: {}", uuid),
-        Err(error) => return Ok(json!({ "msg": error.to_string() })),
+        Err(error) => {
+            error!("Path parameter error: {}", error.to_string());
+            return Ok(Response::new(
+                RequestError::path_parameter("deployment".to_string()),
+                400,
+            ));
+        }
     };
 
     let _table = Clients::dynamodb().await;

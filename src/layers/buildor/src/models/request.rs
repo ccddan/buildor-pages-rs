@@ -44,6 +44,14 @@ impl RequestError {
             details: "Something wrong happened, try again later".to_string(),
         }
     }
+
+    pub fn path_parameter(param: String) -> Self {
+        Self {
+            code: "GRE100".to_string(),
+            message: "Request Error".to_string(),
+            details: format!("Path parameter error {}", param),
+        }
+    }
 }
 
 /* Path Parameter Error */
