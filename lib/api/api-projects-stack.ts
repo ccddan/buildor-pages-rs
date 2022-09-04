@@ -1,15 +1,15 @@
-import { Duration, Stack, StackProps } from "aws-cdk-lib";
-import { LambdaIntegration } from "aws-cdk-lib/aws-apigateway";
-import { Effect, PolicyStatement } from "aws-cdk-lib/aws-iam";
+import {Duration, Stack, StackProps} from "aws-cdk-lib";
+import {LambdaIntegration} from "aws-cdk-lib/aws-apigateway";
 import {
-    Architecture,
-    AssetCode,
-    Function,
-    Runtime
+  Architecture,
+  AssetCode,
+  Function,
+  Runtime
 } from "aws-cdk-lib/aws-lambda";
-import { Construct } from "constructs";
-import { Tables, TablesStack } from "../tables-stack";
-import { APIStack } from "./api-stack";
+import {Construct} from "constructs";
+import {Tables, TablesStack} from "../tables-stack";
+import {APIStack} from "./api-stack";
+import config from "../../config";
 
 
 export class APIProjectsStack extends Stack {
@@ -39,6 +39,7 @@ export class APIProjectsStack extends Stack {
       handler: "bootstrap",
       environment: {
         RUST_BACKTRACE: "1",
+        RUST_LOG: config.api.resources.projects.post.logging,
         TABLE_NAME: projectsTable.tableName,
         TABLE_REGION: props.env!.region!,
       },
@@ -58,6 +59,7 @@ export class APIProjectsStack extends Stack {
       handler: "bootstrap",
       environment: {
         RUST_BACKTRACE: "1",
+        RUST_LOG: config.api.resources.projects.list.logging,
         TABLE_NAME: projectsTable.tableName,
         TABLE_REGION: props.env!.region!,
       },

@@ -7,7 +7,6 @@ import {
   aws_codebuild as build,
   aws_s3 as s3,
   aws_events_targets as targets,
-  aws_events as events,
 } from "aws-cdk-lib";
 import {Construct} from "constructs";
 import config from "../config";
@@ -46,6 +45,7 @@ export class DeployStack extends OutputStack {
       handler: "bootstrap",
       environment: {
         RUST_BACKTRACE: "1",
+        RUST_LOG: config.codebuild.events.processing.logging,
         TABLE_NAME: projectDeployments.tableName,
         TABLE_REGION: props.env!.region!,
       },

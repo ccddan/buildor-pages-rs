@@ -1,16 +1,16 @@
-import { StackProps } from "aws-cdk-lib";
+import {StackProps} from "aws-cdk-lib";
 import {
-    AccessLogFormat,
-    Deployment,
-    LogGroupLogDestination,
-    MethodLoggingLevel,
-    Stage
+  AccessLogFormat,
+  Deployment,
+  LogGroupLogDestination,
+  MethodLoggingLevel,
+  Stage
 } from "aws-cdk-lib/aws-apigateway";
-import { LogGroup } from "aws-cdk-lib/aws-logs";
-import { Construct } from "constructs";
+import {LogGroup} from "aws-cdk-lib/aws-logs";
+import {Construct} from "constructs";
 import config from "../../config";
-import { OutputStack } from "../utils/output-stack";
-import { APIStack } from "./api-stack";
+import {OutputStack} from "../utils/output-stack";
+import {APIStack} from "./api-stack";
 
 
 export class APIDeploymentStack extends OutputStack {
@@ -22,7 +22,7 @@ export class APIDeploymentStack extends OutputStack {
     const deployment = new Deployment(
       this,
       config.app.name(`ApiDeployment-${config.api.version}`),
-      { api }
+      {api}
     );
     deployment.addToLogicalId(new Date().getTime()); // force deployment to update
 
@@ -44,7 +44,7 @@ export class APIDeploymentStack extends OutputStack {
         deployment,
         dataTraceEnabled: true,
         tracingEnabled: true,
-        loggingLevel: MethodLoggingLevel.INFO,
+        loggingLevel: config.api.logging as MethodLoggingLevel,
         accessLogDestination: new LogGroupLogDestination(logsGroup),
         accessLogFormat: AccessLogFormat.jsonWithStandardFields({
           caller: true,

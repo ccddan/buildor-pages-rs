@@ -6,6 +6,9 @@ const DEFAULT = "not-defined";
 const APP_PREFIX = "App";
 const _name = (name: string) => `${APP_PREFIX}${name}`;
 
+// Default Logging Levels
+const LOGS_LEVEL_LAMBDAS_DEFAULT = "info";
+
 const config = {
   app: {
     name: _name,
@@ -17,6 +20,48 @@ const config = {
   },
   api: {
     version: "v1",
+    logging: "INFO", // OFF, ERROR, INFO
+    resources: {
+      // logging: any value for RUST_LOG env var (error,warning,info,debug)
+      projectDeployments: {
+        deployment: {
+          get: {
+            logging: process.env.LOGS_LEVEL_API_PROJECT_DEPLOYMENTS_DEPLOYMENT_GET ? process.env.LOGS_LEVEL_API_PROJECT_DEPLOYMENTS_DEPLOYMENT_GET : LOGS_LEVEL_LAMBDAS_DEFAULT,
+          }
+        },
+        post: {
+          logging: process.env.LOGS_LEVEL_API_PROJECT_DEPLOYMENTS_POST ? process.env.LOGS_LEVEL_API_PROJECT_DEPLOYMENTS_POST : LOGS_LEVEL_LAMBDAS_DEFAULT,
+        },
+      },
+      projects: {
+        list: {
+          logging: process.env.LOGS_LEVEL_API_PROJECTS_LIST ? process.env.LOGS_LEVEL_API_PROJECTS_LIST : LOGS_LEVEL_LAMBDAS_DEFAULT,
+        },
+        post: {
+          logging: process.env.LOGS_LEVEL_API_PROJECTS_POST ? process.env.LOGS_LEVEL_API_PROJECTS_POST : LOGS_LEVEL_LAMBDAS_DEFAULT,
+        },
+      },
+      root: {
+        any: {
+          logging: process.env.LOGS_LEVEL_API_ROOT_ANY ? process.env.LOGS_LEVEL_API_ROOT_ANY : LOGS_LEVEL_LAMBDAS_DEFAULT,
+        },
+      },
+      users: {
+        list: {
+          logging: process.env.LOGS_LEVEL_API_USERS_LIST ? process.env.LOGS_LEVEL_API_USERS_LIST : LOGS_LEVEL_LAMBDAS_DEFAULT,
+        },
+        post: {
+          logging: process.env.LOGS_LEVEL_API_USERS_POST ? process.env.LOGS_LEVEL_API_USERS_POST : LOGS_LEVEL_LAMBDAS_DEFAULT,
+        },
+      },
+    },
+  },
+  codebuild: {
+    events: {
+      processing: {
+        logging: process.env.LOGS_LEVEL_CODEBUILD_EVENTS_PROCESSING ? process.env.LOGS_LEVEL_CODEBUILD_EVENTS_PROCESSING : LOGS_LEVEL_LAMBDAS_DEFAULT,
+      },
+    },
   },
   ssm: {
     api: {

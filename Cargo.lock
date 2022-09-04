@@ -79,6 +79,7 @@ name = "api-root-any"
 version = "0.1.0"
 dependencies = [
  "buildor",
+ "env_logger",
  "lambda_runtime",
  "log",
  "serde",
@@ -485,7 +486,6 @@ dependencies = [
  "aws-sdk-codebuild",
  "aws-sdk-dynamodb",
  "chrono",
- "env_logger",
  "error-stack",
  "log",
  "serde",

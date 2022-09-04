@@ -4,14 +4,14 @@ import {
   Function,
   Runtime,
 } from "aws-cdk-lib/aws-lambda";
-import { Duration, Stack, StackProps } from "aws-cdk-lib";
-import { Effect, PolicyStatement } from "aws-cdk-lib/aws-iam";
-import { Tables, TablesStack } from "../tables-stack";
+import {Duration, Stack, StackProps} from "aws-cdk-lib";
+import {Effect, PolicyStatement} from "aws-cdk-lib/aws-iam";
+import {Tables, TablesStack} from "../tables-stack";
 
-import { APIStack } from "./api-stack";
-import { Construct } from "constructs";
-import { LambdaIntegration } from "aws-cdk-lib/aws-apigateway";
-import { StringParameter } from "aws-cdk-lib/aws-ssm";
+import {APIStack} from "./api-stack";
+import {Construct} from "constructs";
+import {LambdaIntegration} from "aws-cdk-lib/aws-apigateway";
+import {StringParameter} from "aws-cdk-lib/aws-ssm";
 import config from "../../config";
 
 export class APIProjectDeploymentsStack extends Stack {
@@ -50,6 +50,7 @@ export class APIProjectDeploymentsStack extends Stack {
       handler: "bootstrap",
       environment: {
         RUST_BACKTRACE: "1",
+        RUST_LOG: config.api.resources.projectDeployments.post.logging,
         TABLE_NAME: deploymentsTable.tableName,
         TABLE_REGION: props.env!.region!,
         TABLE_NAME_PROJECTS: projectsTable.tableName,
@@ -81,6 +82,7 @@ export class APIProjectDeploymentsStack extends Stack {
       handler: "bootstrap",
       environment: {
         RUST_BACKTRACE: "1",
+        RUST_LOG: config.api.resources.projectDeployments.deployment.get.logging,
         TABLE_NAME: deploymentsTable.tableName,
         TABLE_REGION: props.env!.region!,
       },
