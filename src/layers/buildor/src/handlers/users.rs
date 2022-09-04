@@ -31,7 +31,23 @@ impl UsersParser {
             None => return Err(Report::new(MissingModelPropertyError::new("lname"))),
         };
 
-        Ok(User { uuid, fname, lname })
+        let updated_at = match item.get("updated_at") {
+            Some(value) => value.as_s().unwrap().to_string(),
+            None => return Err(Report::new(MissingModelPropertyError::new("updated_at"))),
+        };
+
+        let created_at = match item.get("created_at") {
+            Some(value) => value.as_s().unwrap().to_string(),
+            None => return Err(Report::new(MissingModelPropertyError::new("created_at"))),
+        };
+
+        Ok(User {
+            uuid,
+            fname,
+            lname,
+            updated_at,
+            created_at,
+        })
     }
 
     pub fn json(

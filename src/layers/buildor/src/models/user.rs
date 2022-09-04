@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use aws_sdk_dynamodb::model::AttributeValue;
+use chrono::Utc;
 use serde_derive::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -12,6 +13,8 @@ pub struct User {
     pub uuid: String,
     pub fname: String,
     pub lname: String,
+    pub updated_at: String,
+    pub created_at: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -22,10 +25,13 @@ pub struct UserCreatePayload {
 
 impl User {
     pub fn new(payload: UserCreatePayload) -> Self {
+        let timestamp = Utc::now().to_rfc3339().to_string();
         User {
             uuid: Uuid::new_v4().to_string(),
             fname: payload.fname,
             lname: payload.lname,
+            updated_at: timestamp.clone(),
+            created_at: timestamp,
         }
     }
 }
@@ -40,6 +46,14 @@ impl AsDynamoDBAttributeValue for User {
         map.insert(
             "lname".to_string(),
             AttributeValue::S(self.lname.to_owned()),
+        );
+        map.insert(
+            "updated_at".to_string(),
+            AttributeValue::S(self.updated_at.to_owned()),
+        );
+        map.insert(
+            "created_at".to_string(),
+            AttributeValue::S(self.created_at.to_owned()),
         );
 
         map

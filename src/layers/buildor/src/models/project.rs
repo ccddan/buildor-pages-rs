@@ -1,4 +1,5 @@
 use aws_sdk_dynamodb::model::AttributeValue;
+use chrono::Utc;
 use serde_derive::{Deserialize, Serialize};
 use std::collections::HashMap;
 use uuid::Uuid;
@@ -15,6 +16,8 @@ pub struct Project {
     pub commands: Commands,
     pub output_folder: String,
     pub last_published: String,
+    pub updated_at: String,
+    pub created_at: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -37,6 +40,7 @@ impl ProjectCreatePayload {
 
 impl Project {
     pub fn new(payload: ProjectCreatePayload) -> Self {
+        let timestamp = Utc::now().to_rfc3339().to_string();
         Project {
             uuid: Uuid::new_v4().to_string(),
             name: payload.name,
@@ -50,6 +54,8 @@ impl Project {
                 None => "dist".to_string(),
             },
             last_published: "-".to_string(),
+            updated_at: timestamp.clone(),
+            created_at: timestamp,
         }
     }
 }
@@ -71,6 +77,14 @@ impl AsDynamoDBAttributeValue for Project {
         map.insert(
             "last_published".to_string(),
             AttributeValue::S(self.last_published.to_owned()),
+        );
+        map.insert(
+            "updated_at".to_string(),
+            AttributeValue::S(self.updated_at.to_owned()),
+        );
+        map.insert(
+            "created_at".to_string(),
+            AttributeValue::S(self.created_at.to_owned()),
         );
 
         map

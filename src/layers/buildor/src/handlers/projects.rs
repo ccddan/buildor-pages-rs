@@ -54,6 +54,16 @@ impl ProjectParser {
             }
         };
 
+        let updated_at = match item.get("updated_at") {
+            Some(value) => value.as_s().unwrap().to_string(),
+            None => return Err(Report::new(MissingModelPropertyError::new("updated_at"))),
+        };
+
+        let created_at = match item.get("created_at") {
+            Some(value) => value.as_s().unwrap().to_string(),
+            None => return Err(Report::new(MissingModelPropertyError::new("created_at"))),
+        };
+
         Ok(Project {
             uuid,
             name,
@@ -61,6 +71,8 @@ impl ProjectParser {
             commands,
             output_folder,
             last_published,
+            updated_at,
+            created_at,
         })
     }
 
