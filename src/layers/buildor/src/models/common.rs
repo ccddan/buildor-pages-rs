@@ -37,9 +37,17 @@ impl Context for ExecutionError {}
 /* Common Error */
 pub struct CommonError;
 impl CommonError {
-    pub fn schema_compliant(details: String) -> RequestError {
+    pub fn generic(error: String) -> RequestError {
         RequestError {
             code: "CME00".to_string(),
+            message: "Error".to_string(),
+            details: error,
+        }
+    }
+
+    pub fn schema_compliant(details: String) -> RequestError {
+        RequestError {
+            code: "CME01".to_string(),
             message: "Schema Compliant Error".to_string(),
             details,
         }
@@ -47,7 +55,7 @@ impl CommonError {
 
     pub fn item_not_found(details: Option<String>) -> RequestError {
         RequestError {
-            code: "CME01".to_string(),
+            code: "CME02".to_string(),
             message: "Not Found Error".to_string(),
             details: match details {
                 Some(details) => details,
