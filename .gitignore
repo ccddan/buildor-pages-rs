@@ -9,3 +9,6 @@ cdk.out
 target/
 .env
 commands.md
+
+docs/**/*.png
+
