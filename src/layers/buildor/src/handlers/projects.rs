@@ -299,8 +299,7 @@ impl HandlerList<Project, HandlerError> for ProjectsHandler {
 #[async_trait]
 impl HandlerGet<Project, HandlerError> for ProjectsHandler {
     async fn get(&self, uuid: String) -> Result<Option<Project>, Report<HandlerError>> {
-        //
-        println!("ProjectsHandler::create - uuid: {:?}", uuid);
+        println!("ProjectsHandler::get - uuid: {:?}", uuid);
 
         let tx = self
             .table
@@ -308,13 +307,13 @@ impl HandlerGet<Project, HandlerError> for ProjectsHandler {
             .table_name(&self.table_name)
             .key("uuid".to_string(), AttributeValue::S(uuid));
 
-        println!("ProjectsHandler::create - send tx");
+        println!("ProjectsHandler::get - send tx");
         let result = tx.send().await;
-        println!("ProjectsHandler::create - tx response: {:?}", result);
+        println!("ProjectsHandler::get - tx response: {:?}", result);
 
         match result {
             Ok(res) => {
-                println!("ProjectsHandler::create - record: {:?}", res);
+                println!("ProjectsHandler::get - record: {:?}", res);
                 match res.item {
                     Some(value) => match ProjectParser::parse(value) {
                         Ok(project) => Ok(Some(project)),
@@ -327,7 +326,7 @@ impl HandlerGet<Project, HandlerError> for ProjectsHandler {
                 }
             }
             Err(err) => {
-                println!("ProjectsHandler::create - failed to create user: {:?}", err);
+                println!("ProjectsHandler::get - failed to get project: {:?}", err);
                 Err(Report::new(HandlerError::new(&err.to_string())))
             }
         }
