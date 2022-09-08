@@ -11,4 +11,5 @@ target/
 commands.md
 
 docs/**/*.png
+docs/**/.$*.bkp
 
