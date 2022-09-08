@@ -18,7 +18,7 @@ impl Request {
                 None => Err(Report::new(PathParameterError::new(
                     format!("Path parameter \"{}\" not found", key).as_str(),
                 ))),
-                Some(value) => Ok(value.to_string()),
+                Some(value) => Ok(value.as_str().unwrap().to_string()),
             },
         }
     }
