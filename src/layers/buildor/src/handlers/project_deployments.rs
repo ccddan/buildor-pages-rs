@@ -2,13 +2,14 @@ use async_trait::async_trait;
 use aws_sdk_dynamodb::model::AttributeValue;
 use aws_sdk_dynamodb::Client;
 use error_stack::Report;
+use log::{self, error, info};
 use serde_json::{json, Value};
 use std::collections::HashMap;
 
 use crate::handlers::codebuild::BuildInfoParser;
 use crate::handlers::projects::ProjectParser;
 use crate::models::common::{AsDynamoDBAttributeValue, MissingModelPropertyError};
-use crate::models::handlers::{HandlerCreate, HandlerError};
+use crate::models::handlers::{HandlerCreate, HandlerError, HandlerGet};
 use crate::models::project_deployment::{ProjectDeployment, ProjectDeploymentCreatePayload};
 
 pub struct ProjectDeploymentParser {}
@@ -121,6 +122,49 @@ impl HandlerCreate<ProjectDeployment, ProjectDeploymentCreatePayload, HandlerErr
                     err
                 );
                 Err(Report::new(HandlerError::new(&err.to_string())))
+            }
+        }
+    }
+}
+
+#[async_trait]
+impl HandlerGet<ProjectDeployment, HandlerError> for ProjectDeploymentsHandler {
+    async fn get(&self, uuid: String) -> Result<Option<ProjectDeployment>, Report<HandlerError>> {
+        info!("ProjectDeploymentHandler::get - uuid: {}", uuid);
+
+        let tx = self
+            .table
+            .get_item()
+            .table_name(&self.table_name)
+            .key("uuid".to_string(), AttributeValue::S(uuid));
+
+        info!("ProjectDeploymentHandler::get - send tx");
+        let result = tx.send().await;
+        info!("ProjectDeploymentHandler::get - tx response: {:?}", result);
+
+        match result {
+            Ok(res) => {
+                info!("ProjectDeploymentHandler::get - record: {:?}", res);
+                match res.item {
+                    Some(value) => match ProjectDeploymentParser::parse(value) {
+                        Ok(deployment) => Ok(Some(deployment)),
+                        Err(error) => {
+                            error!("ProjectDeploymentHandler::get - failed to parse project deployment: {}", error);
+                            Ok(None)
+                        }
+                    },
+                    None => {
+                        info!("ProjectDeploymentHandler::get - no project deployment found with given uuid");
+                        Ok(None)
+                    }
+                }
+            }
+            Err(error) => {
+                error!(
+                    "ProjectDeploymentHandler::get - failed to get project deployment: {:?}",
+                    error
+                );
+                Err(Report::new(HandlerError::new(&error.to_string())))
             }
         }
     }

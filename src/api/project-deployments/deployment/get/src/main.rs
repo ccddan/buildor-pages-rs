@@ -4,8 +4,10 @@ use log::{self, error, info};
 use serde_json::{json, Value};
 
 use buildor::{
+    handlers::project_deployments::ProjectDeploymentsHandler,
     models::{
-        common::ExecutionError,
+        common::{CommonError, ExecutionError},
+        handlers::HandlerGet,
         request::{Request, RequestError},
         response::Response,
     },
@@ -49,9 +51,8 @@ async fn handler(event: LambdaEvent<Value>) -> Result<Value, Report<ExecutionErr
     info!("event: {:?}", event);
     info!("context: {:?}", context);
 
-    let deployment_uuid = Request::path_parameter("deployment", &event);
-    match deployment_uuid {
-        Ok(uuid) => info!("uuid: {}", uuid),
+    let deployment_uuid = match Request::path_parameter("deployment", &event) {
+        Ok(uuid) => uuid,
         Err(error) => {
             error!("Path parameter error: {}", error.to_string());
             return Ok(Response::new(
@@ -60,8 +61,27 @@ async fn handler(event: LambdaEvent<Value>) -> Result<Value, Report<ExecutionErr
             ));
         }
     };
+    info!("uuid: {}", deployment_uuid);
 
-    let _table = Clients::dynamodb().await;
-
-    Err(Report::new(ExecutionError))
+    let pdh = ProjectDeploymentsHandler::new(Clients::dynamodb().await, TABLE_NAME);
+    info!("Fetch project deployment object");
+    match pdh.get(deployment_uuid).await {
+        Ok(value) => match value {
+            Some(deployment) => {
+                info!("Deployment: {:?}", deployment);
+                Ok(Response::new(deployment, 200))
+            }
+            None => {
+                info!("Deployment not found");
+                Ok(Response::new(
+                    CommonError::item_not_found(Some("Project deployment not found".to_string())),
+                    404,
+                ))
+            }
+        },
+        Err(error) => {
+            error!("Failed to retrieve object from db: {}", error);
+            Err(error.change_context(ExecutionError))
+        }
+    }
 }
