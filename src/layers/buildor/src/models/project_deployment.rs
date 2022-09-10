@@ -12,7 +12,9 @@ pub struct ProjectDeployment {
     pub uuid: String,
     pub project: Project,
     pub build: BuildInfo,
+    #[serde(rename(serialize = "updatedAt"))]
     pub updated_at: String,
+    #[serde(rename(serialize = "createdAt"))]
     pub created_at: String,
 }
 

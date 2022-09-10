@@ -11,15 +11,21 @@ use super::request::RequestError;
 #[derive(Serialize, Deserialize, Debug)]
 pub struct User {
     pub uuid: String,
+    #[serde(rename(serialize = "firstName"))]
     pub fname: String,
+    #[serde(rename(serialize = "lastName"))]
     pub lname: String,
+    #[serde(rename(serialize = "updatedAt"))]
     pub updated_at: String,
+    #[serde(rename(serialize = "createdAt"))]
     pub created_at: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct UserCreatePayload {
+    #[serde(rename(serialize = "firstName"))]
     pub fname: String,
+    #[serde(rename(serialize = "lastName"))]
     pub lname: String,
 }
 

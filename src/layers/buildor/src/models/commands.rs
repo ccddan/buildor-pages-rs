@@ -6,6 +6,7 @@ use super::common::AsDynamoDBAttributeValue;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Commands {
+    #[serde(rename(serialize = "preBuild"))]
     pub pre_build: Vec<String>,
     pub build: Vec<String>,
 }

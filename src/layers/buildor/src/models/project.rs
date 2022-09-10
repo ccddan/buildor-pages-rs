@@ -14,9 +14,13 @@ pub struct Project {
     pub name: String,
     pub repository: String,
     pub commands: Commands,
+    #[serde(rename(serialize = "outputFolder"))]
     pub output_folder: String,
+    #[serde(rename(serialize = "lastPublished"))]
     pub last_published: String,
+    #[serde(rename(serialize = "updatedAt"))]
     pub updated_at: String,
+    #[serde(rename(serialize = "createdAt"))]
     pub created_at: String,
 }
 
@@ -25,6 +29,7 @@ pub struct ProjectCreatePayload {
     pub name: String,
     pub repository: String,
     pub commands: Option<Commands>,
+    #[serde(rename(serialize = "outputFolder"))]
     pub output_folder: Option<String>,
 }
 impl ProjectCreatePayload {

@@ -14,10 +14,15 @@ pub enum BuildObject {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct BuildInfo {
     pub uuid: String,
+    #[serde(rename(serialize = "buildNumber"))]
     pub build_number: Option<i64>,
+    #[serde(rename(serialize = "startTime"))]
     pub start_time: Option<i64>,
+    #[serde(rename(serialize = "endTime"))]
     pub end_time: Option<i64>,
+    #[serde(rename(serialize = "currentPhase"))]
     pub current_phase: Option<String>,
+    #[serde(rename(serialize = "buildStatus"))]
     pub build_status: Option<String>,
 }
 
