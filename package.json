@@ -6,7 +6,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "build:api": "cargo lambda build --release --target x86_64-unknown-linux-gnu --output-format zip",
+    "build:lambdas": "cargo lambda build --release --target x86_64-unknown-linux-gnu --output-format zip",
     "watch": "tsc -w",
     "test": "jest",
     "cdk": "cdk"
