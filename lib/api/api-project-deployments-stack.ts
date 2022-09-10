@@ -39,6 +39,11 @@ export class APIProjectDeploymentsStack extends Stack {
       "CodebuildProjectNameValue",
       config.ssm.codebuild.project.name
     ).stringValue;
+    const codeBuildProjectARN = StringParameter.fromStringParameterName(
+      this,
+      "CodebuildProjectARNValue",
+      config.ssm.codebuild.project.arn,
+    ).stringValue;
 
     // Create new project deployment
     this.post = new Function(this, "post", {
@@ -64,10 +69,8 @@ export class APIProjectDeploymentsStack extends Stack {
     this.post.addToRolePolicy(
       new PolicyStatement({
         effect: Effect.ALLOW,
-        actions: ["codebuild:*"],
-        resources: [
-          `arn:aws:codebuild:us-west-2:995360066764:project/${codeBuildProjectName}`,
-        ], // TODO: fetch from SSM
+        actions: ["codebuild:StartBuild"],
+        resources: [codeBuildProjectARN],
       })
     );
 
