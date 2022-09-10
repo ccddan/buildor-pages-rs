@@ -132,5 +132,6 @@ export class DeployStack extends OutputStack {
     });
 
     this.outputSSM(config.app.name("CodebuildProjectNameSSM"), config.ssm.codebuild.project.name, deploy.projectName);
+    this.outputSSM(config.app.name("CodebuildProjectARNSSM"), config.ssm.codebuild.project.arn, deploy.projectArn);
   }
 }

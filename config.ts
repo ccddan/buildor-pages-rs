@@ -89,6 +89,7 @@ const config = {
     codebuild: {
       project: {
         name: `/${APP_PREFIX}/codebuild/project/name`,
+        arn: `/${APP_PREFIX}/codebuild/project/arn`,
       },
     },
   },
