@@ -89,15 +89,6 @@ export class APIProjectDeploymentsStack extends Stack {
       timeout: Duration.seconds(5),
     });
     this.get.grantInvoke(APIStack.principal);
-    this.get.addToRolePolicy(
-      new PolicyStatement({
-        effect: Effect.ALLOW,
-        actions: ["codebuild:*"],
-        resources: [
-          "arn:aws:codebuild:us-west-2:995360066764:project/App-Dynamically-Deploy-SPAs",
-        ], // TODO: fetch from SSM
-      })
-    );
     deploymentsTable.grantReadData(this.get);
 
     // API Endpoints
