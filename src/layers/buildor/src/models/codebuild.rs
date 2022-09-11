@@ -67,6 +67,7 @@ impl fmt::Display for BuildPhase {
     }
 }
 
+#[derive(Debug, PartialEq)]
 pub enum BuildPhaseStatus {
     TimedOut,    // "TIMED_OUT",
     Stopped,     // "STOPPED",
@@ -111,6 +112,37 @@ impl fmt::Display for BuildPhaseStatus {
             BuildPhaseStatus::Fault => fmt.write_str("FAULT"),
             BuildPhaseStatus::ClientError => fmt.write_str("CLIENT_ERROR"),
             BuildPhaseStatus::Unknown => fmt.write_str("UNKNOWN"),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub enum ProjectDeploymentPhase {
+    Building,
+    Deployment,
+    Unknown,
+}
+impl FromStr for ProjectDeploymentPhase {
+    type Err = ();
+
+    fn from_str(input: &str) -> Result<ProjectDeploymentPhase, ()> {
+        match String::from(input) {
+            building if building == ProjectDeploymentPhase::Building.to_string() => {
+                Ok(ProjectDeploymentPhase::Building)
+            }
+            deployment if deployment == ProjectDeploymentPhase::Deployment.to_string() => {
+                Ok(ProjectDeploymentPhase::Deployment)
+            }
+            _ => Ok(ProjectDeploymentPhase::Unknown),
+        }
+    }
+}
+impl fmt::Display for ProjectDeploymentPhase {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ProjectDeploymentPhase::Building => fmt.write_str("Building"),
+            ProjectDeploymentPhase::Deployment => fmt.write_str("Deployment"),
+            _ => fmt.write_str("Unknown"),
         }
     }
 }
