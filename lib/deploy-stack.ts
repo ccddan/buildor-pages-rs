@@ -21,7 +21,8 @@ export class DeployStack extends OutputStack {
     super(scope, id, props);
 
     // dependencies
-    const projectDeployments = TablesStack.getStreamingInstance(this, Tables.ProjectDeployments);
+    const projectDeploymentsTable = TablesStack.getStreamingInstance(this, Tables.ProjectDeployments);
+    const projectsTable = TablesStack.getInstance(this, Tables.Projects);
 
     const artifactsBucket = new s3.Bucket(this, "deploy-spas-artifacts", {
       bucketName: config.app.name("-deploy-spas-artifacts").toLowerCase(),
@@ -46,12 +47,14 @@ export class DeployStack extends OutputStack {
       environment: {
         RUST_BACKTRACE: "1",
         RUST_LOG: config.codebuild.events.processing.logging,
-        TABLE_NAME: projectDeployments.tableName,
+        TABLE_NAME: projectDeploymentsTable.tableName,
         TABLE_REGION: props.env!.region!,
+        TABLE_NAME_PROJECTS: projectsTable.tableName,
       },
       timeout: Duration.seconds(5),
     });
-    projectDeployments.grantReadWriteData(buildEventsProcessingFn);
+    projectDeploymentsTable.grantReadWriteData(buildEventsProcessingFn);
+    projectsTable.grantReadWriteData(buildEventsProcessingFn);
 
     const deploy = new build.Project(this, "deploy", {
       projectName: config.app.name("-Dynamically-Deploy-SPAs"),
