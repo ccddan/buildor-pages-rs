@@ -24,6 +24,8 @@ export class DeployStack extends OutputStack {
     const projectDeploymentsTable = TablesStack.getStreamingInstance(this, Tables.ProjectDeployments);
     const projectsTable = TablesStack.getInstance(this, Tables.Projects);
 
+    const CODEBUILD_PROJECT_NAME_BUILDING = config.app.name("-Building-SPAs");
+
     const artifactsBucket = new s3.Bucket(this, "deploy-spas-artifacts", {
       bucketName: config.app.name("-deploy-spas-artifacts").toLowerCase(),
       autoDeleteObjects: true,
@@ -50,14 +52,16 @@ export class DeployStack extends OutputStack {
         TABLE_NAME: projectDeploymentsTable.tableName,
         TABLE_REGION: props.env!.region!,
         TABLE_NAME_PROJECTS: projectsTable.tableName,
+        CODEBUILD_PROJECT_NAME_BUILDING: CODEBUILD_PROJECT_NAME_BUILDING,
+        CODEBUILD_PROJECT_NAME_DEPLOYMENT: "CODEBUILD_PROJECT_NAME_DEPLOYMENT", // TODO: replace with deployment project name once it is implemented
       },
       timeout: Duration.seconds(5),
     });
     projectDeploymentsTable.grantReadWriteData(buildEventsProcessingFn);
     projectsTable.grantReadWriteData(buildEventsProcessingFn);
 
-    const deploy = new build.Project(this, "deploy", {
-      projectName: config.app.name("-Dynamically-Deploy-SPAs"),
+    const buildingProject = new build.Project(this, "building", {
+      projectName: CODEBUILD_PROJECT_NAME_BUILDING,
       environment: {
         buildImage: build.LinuxBuildImage.STANDARD_5_0,
       },
@@ -104,7 +108,7 @@ export class DeployStack extends OutputStack {
         },
       },
     });
-    deploy.onEvent(config.app.name("codebuild-events"), {
+    buildingProject.onEvent(config.app.name("codebuild-events"), {
       description: "Send codebuild events to processing lambda",
       target: new targets.LambdaFunction(buildEventsProcessingFn, {
         retryAttempts: 3,
@@ -134,7 +138,7 @@ export class DeployStack extends OutputStack {
       }
     });
 
-    this.outputSSM(config.app.name("CodebuildProjectNameSSM"), config.ssm.codebuild.project.name, deploy.projectName);
-    this.outputSSM(config.app.name("CodebuildProjectARNSSM"), config.ssm.codebuild.project.arn, deploy.projectArn);
+    this.outputSSM(config.app.name("CodebuildProjectNameSSM"), config.ssm.codebuild.project.name, CODEBUILD_PROJECT_NAME_BUILDING);
+    this.outputSSM(config.app.name("CodebuildProjectARNSSM"), config.ssm.codebuild.project.arn, buildingProject.projectArn);
   }
 }

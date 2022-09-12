@@ -59,7 +59,7 @@ export class APIProjectDeploymentsStack extends Stack {
         TABLE_NAME: deploymentsTable.tableName,
         TABLE_REGION: props.env!.region!,
         TABLE_NAME_PROJECTS: projectsTable.tableName,
-        CODEBUILD_PROJECT_NAME: codeBuildProjectName,
+        CODEBUILD_PROJECT_NAME_BUILDING: codeBuildProjectName,
       },
       timeout: Duration.seconds(5),
     });
