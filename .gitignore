@@ -8,8 +8,8 @@ node_modules
 cdk.out
 target/
 .env
-commands.md
+.commands.md
+*.json
 
 docs/**/*.png
 docs/**/.$*.bkp
-
