@@ -6,7 +6,7 @@ use std::str::FromStr;
 
 use buildor::{
     models::{
-        codebuild::{BuildPhase, BuildPhaseStatus},
+        codebuild::{BuildPhase, BuildPhaseStatus, ProjectDeploymentPhase},
         common::ExecutionError,
         request::RequestError,
         response::Response,
@@ -50,6 +50,22 @@ async fn handler(event: LambdaEvent<Value>) -> Result<Value, Report<ExecutionErr
         load_env_var("TABLE_NAME_PROJECTS", None).change_context(ExecutionError)?;
     info!("TABLE_NAME_PROJECTS: {}", TABLE_NAME_PROJECTS);
 
+    #[allow(non_snake_case)]
+    let CODEBUILD_PROJECT_NAME_BUILDING =
+        load_env_var("CODEBUILD_PROJECT_NAME_BUILDING", None).change_context(ExecutionError)?;
+    info!(
+        "CODEBUILD_PROJECT_NAME_BUILDING: {}",
+        CODEBUILD_PROJECT_NAME_BUILDING
+    );
+
+    #[allow(non_snake_case)]
+    let CODEBUILD_PROJECT_NAME_DEPLOYMENT =
+        load_env_var("CODEBUILD_PROJECT_NAME_DEPLOYMENT", None).change_context(ExecutionError)?;
+    info!(
+        "CODEBUILD_PROJECT_NAME_DEPLOYMENT: {}",
+        CODEBUILD_PROJECT_NAME_DEPLOYMENT
+    );
+
     info!("Parse event and context objects");
     let (event, context) = event.into_parts();
     info!("event: {}", event);
@@ -81,10 +97,7 @@ async fn handler(event: LambdaEvent<Value>) -> Result<Value, Report<ExecutionErr
     // Get Phase Information
     let completed_phase = match details.get("completed-phase") {
         Some(value) => match value.as_str() {
-            Some(phase) => match BuildPhase::from_str(phase) {
-                Ok(parsed_value) => parsed_value,
-                Err(_) => todo!(),
-            },
+            Some(phase) => BuildPhase::from_str(phase).unwrap(),
             None => todo!(),
         },
         None => todo!(),
@@ -92,15 +105,32 @@ async fn handler(event: LambdaEvent<Value>) -> Result<Value, Report<ExecutionErr
     info!("Build completed phase: {}", completed_phase);
     let completed_phase_status = match details.get("completed-phase-status") {
         Some(value) => match value.as_str() {
-            Some(status) => match BuildPhaseStatus::from_str(status) {
-                Ok(parsed_status) => parsed_status,
-                Err(_) => todo!(),
-            },
+            Some(status) => BuildPhaseStatus::from_str(status).unwrap(),
             None => todo!(),
         },
         None => todo!(),
     };
     info!("Completed phase status: {}", completed_phase_status);
+
+    // Get Codebuild Project Name
+    let codebuild_project_name = match details.get("project-name") {
+        Some(value) => match value.as_str() {
+            Some(parsed) => parsed.to_string(),
+            None => todo!(),
+        },
+        None => todo!(),
+    };
+    info!("Codebuild Project Name: {}", codebuild_project_name);
+
+    // Parse Project Deployment Phase
+    let project_deployment_phase = match codebuild_project_name {
+        building if building == CODEBUILD_PROJECT_NAME_BUILDING => ProjectDeploymentPhase::Building,
+        deployment if deployment == CODEBUILD_PROJECT_NAME_DEPLOYMENT => {
+            ProjectDeploymentPhase::Deployment
+        }
+        _ => ProjectDeploymentPhase::Unknown,
+    };
+    info!("Project Deployment Phase: {}", project_deployment_phase);
 
     Ok(Response::new(json!({ "data": "static output"}), 200))
 }
