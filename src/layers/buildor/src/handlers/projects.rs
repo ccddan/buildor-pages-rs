@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 use aws_sdk_dynamodb::{error::ScanError, model::AttributeValue, types::SdkError, Client};
 use error_stack::Report;
+use log::{self, error, info};
 use serde_json::{json, Value};
 use std::collections::HashMap;
 use tokio_stream::StreamExt;
@@ -227,7 +228,7 @@ impl ProjectsHandler {
 #[async_trait]
 impl HandlerCreate<Project, ProjectCreatePayload, HandlerError> for ProjectsHandler {
     async fn create(&self, payload: ProjectCreatePayload) -> Result<Project, Report<HandlerError>> {
-        println!("ProjectsHandler::create - payload: {:?}", payload);
+        info!("ProjectsHandler::create - payload: {:?}", payload);
         let project = Project::new(payload);
 
         let tx = self
@@ -236,17 +237,17 @@ impl HandlerCreate<Project, ProjectCreatePayload, HandlerError> for ProjectsHand
             .table_name(&self.table_name)
             .set_item(Some(project.as_hashmap()));
 
-        println!("ProjectsHandler::create - send tx");
+        info!("ProjectsHandler::create - send tx");
         let result = tx.send().await;
-        println!("ProjectsHandler::create - tx response: {:?}", result);
+        info!("ProjectsHandler::create - tx response: {:?}", result);
 
         match result {
             Ok(res) => {
-                println!("ProjectsHandler::create - new user created: {:?}", res);
+                info!("ProjectsHandler::create - new user created: {:?}", res);
                 Ok(project)
             }
             Err(err) => {
-                println!("ProjectsHandler::create - failed to create user: {:?}", err);
+                error!("ProjectsHandler::create - failed to create user: {:?}", err);
                 Err(Report::new(HandlerError::new(&err.to_string())))
             }
         }
@@ -257,29 +258,29 @@ impl HandlerList<Project, HandlerError> for ProjectsHandler {
     async fn list(&self) -> Result<Vec<Project>, Report<HandlerError>> {
         let mut data: Vec<Project> = Vec::new();
 
-        println!("ProjectsHandler::list - preparing query to list projects");
+        info!("ProjectsHandler::list - preparing query to list projects");
         let tx = self
             .table
             .scan()
             .table_name(&self.table_name)
             .into_paginator()
             .items();
-        println!("ProjectsHandler::list - send tx");
+        info!("ProjectsHandler::list - send tx");
         let result: Result<Vec<_>, SdkError<ScanError>> = tx.send().collect().await;
-        println!("ProjectsHandler::list - tx response: {:?}", result);
+        info!("ProjectsHandler::list - tx response: {:?}", result);
 
         match result {
             Ok(res) => {
-                println!("ProjectsHandler::list - parse projects");
+                info!("ProjectsHandler::list - parse projects");
                 for item in res {
-                    println!("ProjectParser::list - parse record: {:?}", &item);
+                    info!("ProjectParser::list - parse record: {:?}", &item);
                     match ProjectParser::parse(item) {
                         Ok(parsed) => {
-                            println!("ProjectsHandler::list - project: {:?}", parsed);
+                            info!("ProjectsHandler::list - project: {:?}", parsed);
                             data.push(parsed);
                         }
                         Err(error) => {
-                            println!(
+                            error!(
                                 "ProjectParser::list - parse error (skip from result): {}",
                                 error
                             )
@@ -288,7 +289,7 @@ impl HandlerList<Project, HandlerError> for ProjectsHandler {
                 }
             }
             Err(err) => {
-                println!("ProjectsHandler::list - failed to list projects: {}", err);
+                error!("ProjectsHandler::list - failed to list projects: {}", err);
                 return Err(Report::new(HandlerError::new(&err.to_string())));
             }
         };
@@ -299,7 +300,7 @@ impl HandlerList<Project, HandlerError> for ProjectsHandler {
 #[async_trait]
 impl HandlerGet<Project, HandlerError> for ProjectsHandler {
     async fn get(&self, uuid: String) -> Result<Option<Project>, Report<HandlerError>> {
-        println!("ProjectsHandler::get - uuid: {:?}", uuid);
+        info!("ProjectsHandler::get - uuid: {:?}", uuid);
 
         let tx = self
             .table
@@ -307,18 +308,18 @@ impl HandlerGet<Project, HandlerError> for ProjectsHandler {
             .table_name(&self.table_name)
             .key("uuid".to_string(), AttributeValue::S(uuid));
 
-        println!("ProjectsHandler::get - send tx");
+        info!("ProjectsHandler::get - send tx");
         let result = tx.send().await;
-        println!("ProjectsHandler::get - tx response: {:?}", result);
+        info!("ProjectsHandler::get - tx response: {:?}", result);
 
         match result {
             Ok(res) => {
-                println!("ProjectsHandler::get - record: {:?}", res);
+                info!("ProjectsHandler::get - record: {:?}", res);
                 match res.item {
                     Some(value) => match ProjectParser::parse(value) {
                         Ok(project) => Ok(Some(project)),
                         Err(error) => {
-                            println!("ProjectsHandler::get - failed to parse project: {}", error);
+                            error!("ProjectsHandler::get - failed to parse project: {}", error);
                             Ok(None)
                         }
                     },
@@ -326,7 +327,7 @@ impl HandlerGet<Project, HandlerError> for ProjectsHandler {
                 }
             }
             Err(err) => {
-                println!("ProjectsHandler::get - failed to get project: {:?}", err);
+                error!("ProjectsHandler::get - failed to get project: {:?}", err);
                 Err(Report::new(HandlerError::new(&err.to_string())))
             }
         }

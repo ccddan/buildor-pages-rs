@@ -92,7 +92,7 @@ impl HandlerCreate<ProjectDeployment, ProjectDeploymentCreatePayload, HandlerErr
         &self,
         payload: ProjectDeploymentCreatePayload,
     ) -> Result<ProjectDeployment, Report<HandlerError>> {
-        println!("ProjectDeploymentsHandler::create - payload: {:?}", payload);
+        info!("ProjectDeploymentsHandler::create - payload: {:?}", payload);
         let project_deployment = ProjectDeployment::new(payload.project, payload.build);
 
         let tx = self
@@ -101,24 +101,24 @@ impl HandlerCreate<ProjectDeployment, ProjectDeploymentCreatePayload, HandlerErr
             .table_name(&self.table_name)
             .set_item(Some(project_deployment.as_hashmap()));
 
-        println!("ProjectDeploymentsHandler::create - send tx");
+        info!("ProjectDeploymentsHandler::create - send tx");
         let result = tx.send().await;
-        println!(
+        info!(
             "ProjectDeploymentsHandler::create - tx response: {:?}",
             result
         );
 
         match result {
             Ok(res) => {
-                println!(
-                    "ProjectDeploymentsHandler::create - new user created: {:?}",
+                info!(
+                    "ProjectDeploymentsHandler::create - new project deployment created: {:?}",
                     res
                 );
                 Ok(project_deployment)
             }
             Err(err) => {
-                println!(
-                    "ProjectDeploymentsHandler::create - failed to create user: {:?}",
+                error!(
+                    "ProjectDeploymentsHandler::create - failed to create project deployment: {:?}",
                     err
                 );
                 Err(Report::new(HandlerError::new(&err.to_string())))
