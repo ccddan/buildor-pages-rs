@@ -2,26 +2,29 @@ import {
   Duration,
   RemovalPolicy,
   StackProps,
-  aws_logs as logs,
-  aws_lambda as lambdas,
   aws_codebuild as build,
+  aws_lambda as lambdas,
+  aws_logs as logs,
   aws_s3 as s3,
   aws_events_targets as targets,
 } from "aws-cdk-lib";
-import {Construct} from "constructs";
+import { Tables, TablesStack } from "./tables-stack";
+
+import { Construct } from "constructs";
+import { OutputStack } from "./utils/output-stack";
 import config from "../config";
-import {OutputStack} from "./utils/output-stack";
-import {TablesStack, Tables} from "./tables-stack";
 
 export class DeployStack extends OutputStack {
-
   private readonly srcPath = "target/lambda";
 
   constructor(scope: Construct, id: string, props: StackProps) {
     super(scope, id, props);
 
     // dependencies
-    const projectDeploymentsTable = TablesStack.getStreamingInstance(this, Tables.ProjectDeployments);
+    const projectDeploymentsTable = TablesStack.getStreamingInstance(
+      this,
+      Tables.ProjectDeployments
+    );
     const projectsTable = TablesStack.getInstance(this, Tables.Projects);
 
     const CODEBUILD_PROJECT_NAME_BUILDING = config.app.name("-Building-SPAs");
@@ -40,23 +43,30 @@ export class DeployStack extends OutputStack {
       ],
       removalPolicy: RemovalPolicy.DESTROY,
     });
-    let buildEventsProcessingFn = new lambdas.Function(this, "build-events-processing", {
-      description: "Process codebuild execution status",
-      runtime: lambdas.Runtime.PROVIDED_AL2,
-      code: lambdas.AssetCode.fromAsset(`${this.srcPath}/codebuild-events-processing/bootstrap.zip`),
-      architecture: lambdas.Architecture.X86_64,
-      handler: "bootstrap",
-      environment: {
-        RUST_BACKTRACE: "1",
-        RUST_LOG: config.codebuild.events.processing.logging,
-        TABLE_NAME: projectDeploymentsTable.tableName,
-        TABLE_REGION: props.env!.region!,
-        TABLE_NAME_PROJECTS: projectsTable.tableName,
-        CODEBUILD_PROJECT_NAME_BUILDING: CODEBUILD_PROJECT_NAME_BUILDING,
-        CODEBUILD_PROJECT_NAME_DEPLOYMENT: "CODEBUILD_PROJECT_NAME_DEPLOYMENT", // TODO: replace with deployment project name once it is implemented
-      },
-      timeout: Duration.seconds(5),
-    });
+    let buildEventsProcessingFn = new lambdas.Function(
+      this,
+      "build-events-processing",
+      {
+        description: "Process codebuild execution status",
+        runtime: lambdas.Runtime.PROVIDED_AL2,
+        code: lambdas.AssetCode.fromAsset(
+          `${this.srcPath}/codebuild-events-processing/bootstrap.zip`
+        ),
+        architecture: lambdas.Architecture.X86_64,
+        handler: "bootstrap",
+        environment: {
+          RUST_BACKTRACE: "1",
+          RUST_LOG: config.codebuild.events.processing.logging,
+          TABLE_NAME: projectDeploymentsTable.tableName,
+          TABLE_REGION: props.env!.region!,
+          TABLE_NAME_PROJECTS: projectsTable.tableName,
+          CODEBUILD_PROJECT_NAME_BUILDING: CODEBUILD_PROJECT_NAME_BUILDING,
+          CODEBUILD_PROJECT_NAME_DEPLOYMENT:
+            "CODEBUILD_PROJECT_NAME_DEPLOYMENT", // TODO: replace with deployment project name once it is implemented
+        },
+        timeout: Duration.seconds(5),
+      }
+    );
     projectDeploymentsTable.grantReadWriteData(buildEventsProcessingFn);
     projectsTable.grantReadWriteData(buildEventsProcessingFn);
 
@@ -104,7 +114,10 @@ export class DeployStack extends OutputStack {
       }),
       logging: {
         cloudWatch: {
-          logGroup: new logs.LogGroup(this, config.app.name("project-deployment-logs")),
+          logGroup: new logs.LogGroup(
+            this,
+            config.app.name("project-deployment-logs")
+          ),
         },
       },
     });
@@ -124,7 +137,7 @@ export class DeployStack extends OutputStack {
             "BUILD",
             "POST_BUILD",
             "UPLOAD_ARTIFACTS",
-            "FINALIZING"
+            "FINALIZING",
           ],
           "completed-phase-status": [
             "TIMED_OUT",
@@ -132,13 +145,21 @@ export class DeployStack extends OutputStack {
             "FAILED",
             "SUCCEEDED",
             "FAULT",
-            "CLIENT_ERROR"
+            "CLIENT_ERROR",
           ],
         },
-      }
+      },
     });
 
-    this.outputSSM(config.app.name("CodebuildProjectNameSSM"), config.ssm.codebuild.project.name, CODEBUILD_PROJECT_NAME_BUILDING);
-    this.outputSSM(config.app.name("CodebuildProjectARNSSM"), config.ssm.codebuild.project.arn, buildingProject.projectArn);
+    this.outputSSM(
+      config.app.name("CodebuildProjectNameSSM"),
+      config.ssm.codebuild.project.name,
+      CODEBUILD_PROJECT_NAME_BUILDING
+    );
+    this.outputSSM(
+      config.app.name("CodebuildProjectARNSSM"),
+      config.ssm.codebuild.project.arn,
+      buildingProject.projectArn
+    );
   }
 }
