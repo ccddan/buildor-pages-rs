@@ -25,6 +25,7 @@ impl FromStr for BuildPhase {
 
     fn from_str(input: &str) -> Result<BuildPhase, ()> {
         match String::from(input) {
+            queued if queued == BuildPhase::Queued.to_string() => Ok(BuildPhase::Queued),
             submitted if submitted == BuildPhase::Submitted.to_string() => {
                 Ok(BuildPhase::Submitted)
             }
@@ -53,6 +54,7 @@ impl FromStr for BuildPhase {
 impl fmt::Display for BuildPhase {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            BuildPhase::Queued => fmt.write_str("QUEUED"),
             BuildPhase::Submitted => fmt.write_str("SUBMITTED"),
             BuildPhase::Provisioning => fmt.write_str("PROVISIONING"),
             BuildPhase::DownloadSource => fmt.write_str("DOWNLOAD_SOURCE"),
@@ -69,6 +71,7 @@ impl fmt::Display for BuildPhase {
 
 #[derive(Debug, PartialEq)]
 pub enum BuildPhaseStatus {
+    InProgress,  // "IN_PROGRESS"
     TimedOut,    // "TIMED_OUT",
     Stopped,     // "STOPPED",
     Failed,      // "FAILED",
@@ -82,6 +85,9 @@ impl FromStr for BuildPhaseStatus {
 
     fn from_str(input: &str) -> Result<BuildPhaseStatus, ()> {
         match String::from(input) {
+            in_progress if in_progress == BuildPhaseStatus::InProgress.to_string() => {
+                Ok(BuildPhaseStatus::InProgress)
+            }
             timed_out if timed_out == BuildPhaseStatus::TimedOut.to_string() => {
                 Ok(BuildPhaseStatus::TimedOut)
             }
@@ -105,6 +111,7 @@ impl FromStr for BuildPhaseStatus {
 impl fmt::Display for BuildPhaseStatus {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            BuildPhaseStatus::InProgress => fmt.write_str("IN_PROGRESS"),
             BuildPhaseStatus::TimedOut => fmt.write_str("TIMED_OUT"),
             BuildPhaseStatus::Stopped => fmt.write_str("STOPPED"),
             BuildPhaseStatus::Failed => fmt.write_str("FAILED"),
