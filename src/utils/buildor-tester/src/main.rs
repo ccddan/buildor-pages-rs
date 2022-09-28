@@ -17,7 +17,11 @@ async fn main() {
     println!("Define CodeBuild project name: {}", codebuild_project_name);
 
     println!("Initialize CodeBuildHandler instance.");
-    let cbh = CodeBuildHandler::new(codebuild_client, codebuild_project_name);
+    let cbh = CodeBuildHandler::new(
+        codebuild_client,
+        codebuild_project_name,
+        "CODEBUILD_PROJECT_NAME_DEPLOYMENT".to_string(),
+    ); // TODO: replace with deployment codebuild project name
     println!("Codebuild Handler is ready.");
 
     println!("Create new build");

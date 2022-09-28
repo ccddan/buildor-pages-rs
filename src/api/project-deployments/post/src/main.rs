@@ -68,6 +68,14 @@ async fn handler(event: LambdaEvent<Value>) -> Result<Value, Report<ExecutionErr
         CODEBUILD_PROJECT_NAME_BUILDING
     );
 
+    #[allow(non_snake_case)]
+    let CODEBUILD_PROJECT_NAME_DEPLOYMENT =
+        load_env_var("CODEBUILD_PROJECT_NAME_DEPLOYMENT", None).change_context(ExecutionError)?;
+    info!(
+        "CODEBUILD_PROJECT_NAME_DEPLOYMENT: {}",
+        CODEBUILD_PROJECT_NAME_DEPLOYMENT
+    );
+
     info!("Parse event and context objects");
     let (event, context) = event.into_parts();
     info!("Event: {:?}", event);
@@ -102,7 +110,11 @@ async fn handler(event: LambdaEvent<Value>) -> Result<Value, Report<ExecutionErr
     info!("Project: {:?}", project);
 
     // CodeBuild Vars
-    let cbh = CodeBuildHandler::new(Clients::codebuild().await, CODEBUILD_PROJECT_NAME_BUILDING);
+    let cbh = CodeBuildHandler::new(
+        Clients::codebuild().await,
+        CODEBUILD_PROJECT_NAME_BUILDING.clone(),
+        CODEBUILD_PROJECT_NAME_DEPLOYMENT.clone(),
+    );
     let pdh = ProjectDeploymentsHandler::new(Clients::dynamodb().await, TABLE_NAME);
 
     info!("Execute new codebuild build");

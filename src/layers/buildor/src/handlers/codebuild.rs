@@ -1,5 +1,5 @@
 use aws_sdk_codebuild::{
-    model::{Build, EnvironmentVariable, EnvironmentVariableType, StatusType},
+    model::{Build, EnvironmentVariable, EnvironmentVariableType},
     Client,
 };
 use aws_sdk_dynamodb::model::AttributeValue;
@@ -8,27 +8,17 @@ use error_stack::Report;
 use log::{self, debug, error, info};
 use serde_json::{json, Value};
 use std::collections::HashMap;
+use std::str::FromStr;
 
-use crate::handlers::projects::ProjectParser;
-use crate::models::codebuild::{BuildInfo, BuildObject};
-use crate::models::common::MissingModelPropertyError;
-use crate::models::handlers::HandlerError;
-use crate::models::project::Project;
-
-fn get_build_status(status: Option<&StatusType>) -> Option<String> {
-    match status {
-        Some(value) => Some(match value {
-            StatusType::Failed => String::from("Failed"),
-            StatusType::Fault => String::from("Fault"),
-            StatusType::InProgress => String::from("InProgress"),
-            StatusType::Stopped => String::from("Stopped"),
-            StatusType::TimedOut => String::from("TimedOut"),
-            StatusType::Succeeded => String::from("Succeeded"),
-            _ => String::from("Unknown"),
-        }),
-        None => None,
-    }
-}
+use crate::{
+    handlers::projects::ProjectParser,
+    models::{
+        codebuild::{BuildInfo, BuildObject, BuildPhase, BuildPhaseStatus, ProjectDeploymentPhase},
+        common::MissingModelPropertyError,
+        handlers::HandlerError,
+        project::Project,
+    },
+};
 
 fn parse_build_info(build: &Build) -> Option<BuildInfo> {
     let uuid = build.id.to_owned().unwrap().split(":").last()?.to_string();
@@ -41,17 +31,31 @@ fn parse_build_info(build: &Build) -> Option<BuildInfo> {
         Some(value) => Some(value.to_millis().unwrap()),
         None => None,
     };
-    let current_phase = match build.current_phase() {
-        Some(value) => Some(String::from(value)),
+    let deployment_phase = match build.project_name() {
+        Some(value) => Some(value.to_string()),
         None => None,
     };
-    let build_status = get_build_status(build.build_status());
+    // TODO: change current_phase by build_phase
+    let current_phase = match build.current_phase() {
+        Some(value) => Some(BuildPhase::from_str(value).unwrap().to_string()),
+        None => None,
+    };
+    // TODO: change build_status by build_phase_status
+    let build_status = match build.build_status() {
+        Some(value) => Some(
+            BuildPhaseStatus::from_str(value.as_str())
+                .unwrap()
+                .to_string(),
+        ),
+        None => Some(BuildPhaseStatus::Unknown.to_string()),
+    };
 
     Some(BuildInfo {
         uuid,
         build_number,
         start_time,
         end_time,
+        deployment_phase,
         current_phase,
         build_status,
     })
@@ -111,6 +115,18 @@ impl BuildInfoParser {
             None => return Err(Report::new(MissingModelPropertyError::new("end_time"))),
         };
 
+        let deployment_phase = match item.get("deployment_phase") {
+            Some(value) => match ProjectDeploymentPhase::from_str(value.as_s().unwrap()) {
+                Ok(parsed) => Some(parsed.to_string()),
+                Err(_) => Some(ProjectDeploymentPhase::Unknown.to_string()),
+            },
+            None => {
+                return Err(Report::new(MissingModelPropertyError::new(
+                    "deployment_phase",
+                )))
+            }
+        };
+
         let current_phase = match item.get("current_phase") {
             Some(value) => Some(value.as_s().unwrap().to_string()),
             None => return Err(Report::new(MissingModelPropertyError::new("current_phase"))),
@@ -126,6 +142,7 @@ impl BuildInfoParser {
             build_number,
             start_time,
             end_time,
+            deployment_phase,
             current_phase,
             build_status,
         })
@@ -139,24 +156,73 @@ impl BuildInfoParser {
             Err(err) => Err(err),
         }
     }
+
+    pub fn deployment_phase(
+        value: Option<String>,
+        codebuild_building: String,
+        codebuild_deployment: String,
+    ) -> ProjectDeploymentPhase {
+        info!("BuildInfoParser::deployment_phase - value: {:?}", value);
+        info!(
+            "BuildInfoParser::deployment_phase - codebuild_building: {}",
+            codebuild_building
+        );
+        info!(
+            "BuildInfoParser::deployment_phase - codebuild_deployment: {}",
+            codebuild_deployment
+        );
+        match value {
+            Some(validated) => match validated {
+                building
+                    if building == codebuild_building
+                        || building == ProjectDeploymentPhase::Building.to_string() =>
+                {
+                    ProjectDeploymentPhase::Building
+                }
+                deployment
+                    if deployment == codebuild_deployment
+                        || deployment == ProjectDeploymentPhase::Deployment.to_string() =>
+                {
+                    ProjectDeploymentPhase::Deployment
+                }
+                _ => {
+                    info!("BuildInfoParser::deployment_phase - value did not match any valid option, defaults to {}", ProjectDeploymentPhase::Unknown.to_string());
+                    ProjectDeploymentPhase::Unknown
+                }
+            },
+            None => {
+                info!(
+                    "BuildInfoParser::deployment_phase - value not set, defaults to {}",
+                    ProjectDeploymentPhase::Unknown.to_string()
+                );
+                ProjectDeploymentPhase::Unknown
+            }
+        }
+    }
 }
 
 pub struct CodeBuildHandler {
     client: Client,
-    project_name: String,
+    codebuild_project_name_building: String,
+    codebuild_project_name_deployment: String,
 }
 
 impl CodeBuildHandler {
-    pub fn new(client: Client, project_name: String) -> Self {
+    pub fn new(
+        client: Client,
+        codebuild_project_name_building: String,
+        codebuild_project_name_deployment: String,
+    ) -> Self {
         Self {
             client,
-            project_name,
+            codebuild_project_name_building,
+            codebuild_project_name_deployment,
         }
     }
 
     pub async fn create(&self, project: &Project) -> Result<BuildInfo, Report<HandlerError>> {
         info!("CodeBuildHandler::create - project: {:?}", project);
-        let timestamp = Utc::now().to_string();
+        let timestamp = Utc::now().to_rfc3339().to_string();
 
         debug!("CodeBuildHandler::create - create pre-build commands");
         let mut pre_build_commands = Vec::from_iter(project.commands.pre_build.iter());
@@ -228,7 +294,7 @@ impl CodeBuildHandler {
         let tx = self
             .client
             .start_build()
-            .project_name(self.project_name.to_string())
+            .project_name(self.codebuild_project_name_building.to_string())
             .environment_variables_override(
                 EnvironmentVariable::builder()
                     .set_name(Some("PROJECT_NAME".to_string()))
@@ -250,7 +316,21 @@ impl CodeBuildHandler {
                 debug!("CodeBuildHandler::create - tx result: {:?}", result);
                 debug!("CodeBuildHandler::create - parse build info");
                 match get_build_info(&BuildObject::StartBuildOutput(result)) {
-                    Some(build_info) => Ok(build_info),
+                    Some(mut build_info) => {
+                        build_info.deployment_phase = Some(
+                            BuildInfoParser::deployment_phase(
+                                build_info.deployment_phase,
+                                self.codebuild_project_name_building.clone(),
+                                self.codebuild_project_name_deployment.clone(),
+                            )
+                            .to_string(),
+                        );
+                        info!(
+                            "CodeBuildHandler::create - parsed deployment phase: {:?}",
+                            build_info
+                        );
+                        Ok(build_info)
+                    }
                     None => {
                         error!("CodeBuildHandler::create - code info parsing failed, but build was created");
                         Err(Report::new(HandlerError::new(
@@ -274,7 +354,10 @@ impl CodeBuildHandler {
 
         debug!("CodeBuildHandler::get - build ids parameter");
         let mut ids: Vec<String> = Vec::new();
-        ids.push(String::from(format!("{}:{}", self.project_name, id)));
+        ids.push(String::from(format!(
+            "{}:{}",
+            self.codebuild_project_name_building, id
+        )));
 
         debug!("CodeBuildHandler::get - tx preparation");
         let tx = self.client.batch_get_builds().set_ids(Some(ids));

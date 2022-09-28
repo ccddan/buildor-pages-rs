@@ -5,8 +5,9 @@ use serde_json::{json, Value};
 use std::str::FromStr;
 
 use buildor::{
+    handlers::codebuild::BuildInfoParser,
     models::{
-        codebuild::{BuildPhase, BuildPhaseStatus, ProjectDeploymentPhase},
+        codebuild::{BuildPhase, BuildPhaseStatus},
         common::ExecutionError,
         request::RequestError,
         response::Response,
@@ -115,21 +116,19 @@ async fn handler(event: LambdaEvent<Value>) -> Result<Value, Report<ExecutionErr
     // Get Codebuild Project Name
     let codebuild_project_name = match details.get("project-name") {
         Some(value) => match value.as_str() {
-            Some(parsed) => parsed.to_string(),
-            None => todo!(),
+            Some(parsed) => Some(parsed.to_string()),
+            None => None,
         },
         None => todo!(),
     };
-    info!("Codebuild Project Name: {}", codebuild_project_name);
+    info!("Codebuild Project Name: {:?}", codebuild_project_name);
 
     // Parse Project Deployment Phase
-    let project_deployment_phase = match codebuild_project_name {
-        building if building == CODEBUILD_PROJECT_NAME_BUILDING => ProjectDeploymentPhase::Building,
-        deployment if deployment == CODEBUILD_PROJECT_NAME_DEPLOYMENT => {
-            ProjectDeploymentPhase::Deployment
-        }
-        _ => ProjectDeploymentPhase::Unknown,
-    };
+    let project_deployment_phase = BuildInfoParser::deployment_phase(
+        codebuild_project_name,
+        CODEBUILD_PROJECT_NAME_BUILDING.clone(),
+        CODEBUILD_PROJECT_NAME_DEPLOYMENT.clone(),
+    );
     info!("Project Deployment Phase: {}", project_deployment_phase);
 
     Ok(Response::new(json!({ "data": "static output"}), 200))

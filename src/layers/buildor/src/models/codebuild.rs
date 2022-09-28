@@ -169,12 +169,13 @@ pub struct BuildInfo {
     pub start_time: Option<i64>,
     #[serde(rename(serialize = "endTime"))]
     pub end_time: Option<i64>,
+    #[serde(rename(serialize = "deploymentPhase"))]
+    pub deployment_phase: Option<String>,
     #[serde(rename(serialize = "currentPhase"))]
-    pub current_phase: Option<String>,
+    pub current_phase: Option<String>, // TODO: rename to build_phase
     #[serde(rename(serialize = "buildStatus"))]
-    pub build_status: Option<String>,
+    pub build_status: Option<String>, // TODO: rename to build_phase_status
 }
-
 impl AsDynamoDBAttributeValue for BuildInfo {
     fn as_hashmap(&self) -> HashMap<String, AttributeValue> {
         let mut map: HashMap<String, AttributeValue> = HashMap::new();
@@ -190,6 +191,10 @@ impl AsDynamoDBAttributeValue for BuildInfo {
         map.insert(
             "end_time".to_string(),
             AttributeValue::N(format!("{}", self.end_time.unwrap_or(0))),
+        );
+        map.insert(
+            "deployment_phase".to_string(),
+            AttributeValue::S(self.deployment_phase.to_owned().unwrap_or("-".to_string())),
         );
         map.insert(
             "current_phase".to_string(),

@@ -60,6 +60,7 @@ export class APIProjectDeploymentsStack extends Stack {
         TABLE_REGION: props.env!.region!,
         TABLE_NAME_PROJECTS: projectsTable.tableName,
         CODEBUILD_PROJECT_NAME_BUILDING: codeBuildProjectName,
+        CODEBUILD_PROJECT_NAME_DEPLOYMENT: "CODEBUILD_PROJECT_NAME_DEPLOYMENT", // TODO: replace with deployment project name once it is implemented
       },
       timeout: Duration.seconds(5),
     });
