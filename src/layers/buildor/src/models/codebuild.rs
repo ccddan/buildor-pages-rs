@@ -9,6 +9,7 @@ use super::common::AsDynamoDBAttributeValue;
 
 #[derive(Debug, PartialEq)]
 pub enum BuildPhase {
+    Queued,          // "QUEUED"
     Submitted,       // "SUBMITTED",
     Provisioning,    // "PROVISIONING",
     DownloadSource,  // "DOWNLOAD_SOURCE",
