@@ -55,7 +55,7 @@ pub trait HandlerUpdate<T, PU, UE> {
     /// T = Main handler type (Project, User, etc.)
     /// PU = Payload update. Payload to update object.
     /// UE = Update error
-    async fn update(&self, uuid: String, payload: PU) -> Result<bool, Report<UE>>;
+    async fn update(&self, uuid: String, payload: PU) -> Result<(), Report<UE>>;
 }
 
 #[async_trait]
