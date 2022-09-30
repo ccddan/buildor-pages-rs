@@ -73,9 +73,9 @@ async fn main() {
     info!("====================== Project Deployments ======================");
     let project = Project::new(project_create_payload.clone());
     let build = build_info.clone();
-    let createProjectDeploymentPayload = ProjectDeploymentCreatePayload { project, build };
+    let project_deployment_create_payload = ProjectDeploymentCreatePayload { project, build };
 
     info!("Create New Project Deployment");
-    let result = pdh.create(createProjectDeploymentPayload).await;
+    let result = pdh.create(project_deployment_create_payload).await;
     info!("New Project Deployment: {:?}", result);
 }
