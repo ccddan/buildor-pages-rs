@@ -6,25 +6,24 @@ use buildor::{
     },
     utils::Clients,
 };
+use log::{self, error, info};
+
+const CODEBUILD_PROJECT_NAME_BUILDING: &str = "App-Dynamically-Deploy-SPAs";
+const CODEBUILD_PROJECT_NAME_DEPLOYMENT: &str = "CODEBUILD_PROJECT_NAME_DEPLOYMENT"; // TODO: replace with deployment codebuild project name
 
 #[tokio::main]
 async fn main() {
     env_logger::init();
 
-    println!("Initialize CodeBuild client.");
-    let codebuild_client = Clients::codebuild().await;
-    let codebuild_project_name = String::from("App-Dynamically-Deploy-SPAs");
-    println!("Define CodeBuild project name: {}", codebuild_project_name);
-
-    println!("Initialize CodeBuildHandler instance.");
+    info!("Initialize Handlers");
     let cbh = CodeBuildHandler::new(
-        codebuild_client,
-        codebuild_project_name,
-        "CODEBUILD_PROJECT_NAME_DEPLOYMENT".to_string(),
-    ); // TODO: replace with deployment codebuild project name
-    println!("Codebuild Handler is ready.");
+        Clients::codebuild().await,
+        CODEBUILD_PROJECT_NAME_BUILDING.clone().to_string(),
+        CODEBUILD_PROJECT_NAME_DEPLOYMENT.clone().to_string(),
+    );
 
-    println!("Create new build");
+    // CodeBuild - New Build (Project Deployment)
+    info!("Create new build");
     let project_create_payload = ProjectCreatePayload {
         name: "buildspace-solana-pay".to_string(),
         repository: "https://github.com/ccddan/buildspace-solana-pay.git".to_string(),
@@ -36,11 +35,11 @@ async fn main() {
     };
     let project = Project::new(project_create_payload);
     let build = cbh.create(&project).await;
-    println!("Newly created build: {:?}", build);
+    info!("Newly created build: {:?}", build);
 
-    println!("Fetch BuildInfo from build");
+    info!("Fetch BuildInfo from build");
     let result = cbh
         .get("414026fb-4994-45e3-bd97-32a97bf47b8e".to_string())
         .await;
-    println!("Handler result: {:?}", result);
+    info!("Handler result: {:?}", result);
 }
