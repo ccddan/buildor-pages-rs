@@ -161,7 +161,7 @@ pub enum BuildObject {
     StartBuildOutput(StartBuildOutput),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct BuildInfo {
     pub uuid: String,
     #[serde(rename(serialize = "buildNumber"))]
