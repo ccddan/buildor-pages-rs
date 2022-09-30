@@ -1,7 +1,15 @@
 use async_trait::async_trait;
-use aws_sdk_dynamodb::Client;
+use aws_sdk_dynamodb::{model::AttributeValue, Client};
 use error_stack::{Context, Report};
+use std::collections::HashMap;
 use std::fmt;
+
+#[derive(Debug, Clone)]
+pub struct HandlerUpdateExpressions {
+    pub attribute_names: HashMap<String, String>,
+    pub attribute_values: HashMap<String, AttributeValue>,
+    pub update_expression: String,
+}
 
 #[derive(Debug)]
 pub struct HandlerError {
