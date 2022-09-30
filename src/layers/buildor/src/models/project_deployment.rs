@@ -54,13 +54,13 @@ impl AsDynamoDBAttributeValue for ProjectDeployment {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ProjectDeploymentCreatePayload {
     pub project: Project,
     pub build: BuildInfo,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ProjectDeploymentCreatePayloadRequest {
     pub project_uuid: String,
 }

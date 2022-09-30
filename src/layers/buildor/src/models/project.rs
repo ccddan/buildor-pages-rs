@@ -8,7 +8,7 @@ use super::commands::Commands;
 use super::common::AsDynamoDBAttributeValue;
 use super::request::RequestError;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Project {
     pub uuid: String,
     pub name: String,
