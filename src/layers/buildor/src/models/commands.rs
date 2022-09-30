@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 use super::common::AsDynamoDBAttributeValue;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Commands {
     #[serde(rename(serialize = "preBuild"))]
     pub pre_build: Vec<String>,

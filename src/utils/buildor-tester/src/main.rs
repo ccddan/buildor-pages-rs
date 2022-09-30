@@ -33,7 +33,7 @@ async fn main() {
         )),
         output_folder: Some("out".to_string()),
     };
-    let project = Project::new(project_create_payload);
+    let project = Project::new(project_create_payload.clone());
     let build = cbh.create(&project).await;
     info!("Newly created build: {:?}", build);
 

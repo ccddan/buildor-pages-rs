@@ -24,7 +24,7 @@ pub struct Project {
     pub created_at: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ProjectCreatePayload {
     pub name: String,
     pub repository: String,
@@ -39,21 +39,6 @@ impl ProjectCreatePayload {
             repository,
             commands: None,
             output_folder: None,
-        }
-    }
-
-    pub fn from(payload: &ProjectCreatePayload) -> Self {
-        Self {
-            name: payload.name.clone(),
-            repository: payload.repository.clone(),
-            commands: match &payload.commands {
-                Some(commands) => Some(Commands::new(
-                    Some(commands.pre_build.clone()),
-                    Some(commands.build.clone()),
-                )),
-                None => None,
-            },
-            output_folder: payload.output_folder.clone(),
         }
     }
 }
