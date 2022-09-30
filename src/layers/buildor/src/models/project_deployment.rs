@@ -17,7 +17,6 @@ pub struct ProjectDeployment {
     #[serde(rename(serialize = "createdAt"))]
     pub created_at: String,
 }
-
 impl ProjectDeployment {
     pub fn new(project: Project, build: BuildInfo) -> Self {
         let timestamp = Utc::now().to_rfc3339().to_string();
@@ -30,7 +29,6 @@ impl ProjectDeployment {
         }
     }
 }
-
 impl AsDynamoDBAttributeValue for ProjectDeployment {
     fn as_hashmap(&self) -> HashMap<String, AttributeValue> {
         let mut map: HashMap<String, AttributeValue> = HashMap::new();
@@ -63,6 +61,29 @@ pub struct ProjectDeploymentCreatePayload {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ProjectDeploymentCreatePayloadRequest {
     pub project_uuid: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ProjectDeploymentUpdatePayload {
+    pub project: Option<Project>,
+    pub build: Option<BuildInfo>,
+}
+impl AsDynamoDBAttributeValue for ProjectDeploymentUpdatePayload {
+    fn as_hashmap(&self) -> HashMap<String, AttributeValue> {
+        let mut map: HashMap<String, AttributeValue> = HashMap::new();
+        self.project
+            .as_ref()
+            .and_then(|project| map.insert("project".to_string(), project.as_attr()));
+        self.build
+            .as_ref()
+            .and_then(|build| map.insert("build".to_string(), build.as_attr()));
+
+        map
+    }
+
+    fn as_attr(&self) -> AttributeValue {
+        AttributeValue::M(self.as_hashmap())
+    }
 }
 
 pub struct ProjectDeploymentError;

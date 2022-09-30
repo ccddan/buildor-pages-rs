@@ -1,16 +1,23 @@
 use async_trait::async_trait;
-use aws_sdk_dynamodb::model::AttributeValue;
-use aws_sdk_dynamodb::Client;
+use aws_sdk_dynamodb::{
+    model::{AttributeValue, ReturnConsumedCapacity, ReturnItemCollectionMetrics, ReturnValue},
+    Client,
+};
 use error_stack::Report;
 use log::{self, error, info};
 use serde_json::{json, Value};
 use std::collections::HashMap;
 
-use crate::handlers::codebuild::BuildInfoParser;
-use crate::handlers::projects::ProjectParser;
-use crate::models::common::{AsDynamoDBAttributeValue, MissingModelPropertyError};
-use crate::models::handlers::{HandlerCreate, HandlerError, HandlerGet};
-use crate::models::project_deployment::{ProjectDeployment, ProjectDeploymentCreatePayload};
+use crate::{
+    handlers::{codebuild::BuildInfoParser, projects::ProjectParser},
+    models::{
+        common::{AsDynamoDBAttributeValue, MissingModelPropertyError},
+        handlers::{HandlerCreate, HandlerError, HandlerGet, HandlerUpdate},
+        project_deployment::{
+            ProjectDeployment, ProjectDeploymentCreatePayload, ProjectDeploymentUpdatePayload,
+        },
+    },
+};
 
 pub struct ProjectDeploymentParser {}
 impl ProjectDeploymentParser {
@@ -165,6 +172,60 @@ impl HandlerGet<ProjectDeployment, HandlerError> for ProjectDeploymentsHandler {
                     error
                 );
                 Err(Report::new(HandlerError::new(&error.to_string())))
+            }
+        }
+    }
+}
+
+#[async_trait]
+impl HandlerUpdate<bool, ProjectDeploymentUpdatePayload, HandlerError>
+    for ProjectDeploymentsHandler
+{
+    async fn update(
+        &self,
+        uuid: String,
+        payload: ProjectDeploymentUpdatePayload,
+    ) -> Result<(), Report<HandlerError>> {
+        info!("ProjectDeploymentsHandler::update - uuid: {}", uuid);
+        info!(
+            "ProjectDeploymentsHandler::update - payload: {:#?}",
+            payload
+        );
+        let expressions = self.get_update_expressions(payload);
+
+        let tx = self
+            .table
+            .update_item()
+            .table_name(&self.table_name)
+            .return_values(ReturnValue::UpdatedOld)
+            .return_consumed_capacity(ReturnConsumedCapacity::Total)
+            .return_item_collection_metrics(ReturnItemCollectionMetrics::Size)
+            .key("uuid".to_string(), AttributeValue::S(uuid))
+            .set_expression_attribute_names(Some(expressions.attribute_names))
+            .set_expression_attribute_values(Some(expressions.attribute_values))
+            .update_expression(expressions.update_expression);
+
+        info!("ProjectDeploymentsHandler::update - send tx");
+        let result = tx.send().await;
+        info!(
+            "ProjectDeploymentsHandler::update - tx response: {:#?}",
+            result
+        );
+
+        match result {
+            Ok(res) => {
+                info!(
+                    "ProjectDeploymentsHandler::update - project deployment updated: {:?}",
+                    res
+                );
+                Ok(())
+            }
+            Err(err) => {
+                error!(
+                    "ProjectDeploymentsHandler::update - failed to update project deployment: {:?}",
+                    err
+                );
+                Err(Report::new(HandlerError::new(&err.to_string())))
             }
         }
     }
