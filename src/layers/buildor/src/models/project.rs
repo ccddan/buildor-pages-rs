@@ -41,6 +41,21 @@ impl ProjectCreatePayload {
             output_folder: None,
         }
     }
+
+    pub fn from(payload: &ProjectCreatePayload) -> Self {
+        Self {
+            name: payload.name.clone(),
+            repository: payload.repository.clone(),
+            commands: match &payload.commands {
+                Some(commands) => Some(Commands::new(
+                    Some(commands.pre_build.clone()),
+                    Some(commands.build.clone()),
+                )),
+                None => None,
+            },
+            output_folder: payload.output_folder.clone(),
+        }
+    }
 }
 
 impl Project {
