@@ -1,18 +1,18 @@
-import { StackProps } from "aws-cdk-lib";
 import {
-    AttributeType,
-    BillingMode,
-    ITable,
-    StreamViewType,
-    Table
+  AttributeType,
+  BillingMode,
+  ITable,
+  StreamViewType,
+  Table,
 } from "aws-cdk-lib/aws-dynamodb";
 import { Effect, PolicyStatement } from "aws-cdk-lib/aws-iam";
-import { Function } from "aws-cdk-lib/aws-lambda";
-import { StringParameter } from "aws-cdk-lib/aws-ssm";
-import { Construct } from "constructs";
-import config from "../config";
-import { OutputStack } from "./utils/output-stack";
 
+import { Construct } from "constructs";
+import { Function } from "aws-cdk-lib/aws-lambda";
+import { OutputStack } from "./utils/output-stack";
+import { StackProps } from "aws-cdk-lib";
+import { StringParameter } from "aws-cdk-lib/aws-ssm";
+import config from "../config";
 
 export enum Tables {
   Users = "Users",
@@ -24,6 +24,7 @@ export class TablesStack extends OutputStack {
   constructor(scope: Construct, id: string, props: StackProps) {
     super(scope, id, props);
 
+    // Users
     const users = new Table(this, Tables.Users, {
       partitionKey: { name: "uuid", type: AttributeType.STRING },
       billingMode: BillingMode.PAY_PER_REQUEST,
@@ -41,6 +42,7 @@ export class TablesStack extends OutputStack {
       users.tableStreamArn!
     );
 
+    // Projects
     const projects = new Table(this, Tables.Projects, {
       partitionKey: { name: "uuid", type: AttributeType.STRING },
       billingMode: BillingMode.PAY_PER_REQUEST,
@@ -58,6 +60,7 @@ export class TablesStack extends OutputStack {
       projects.tableStreamArn!
     );
 
+    // Project Deployments
     const projectDeployments = new Table(this, Tables.ProjectDeployments, {
       partitionKey: { name: "uuid", type: AttributeType.STRING },
       billingMode: BillingMode.PAY_PER_REQUEST,
@@ -67,12 +70,12 @@ export class TablesStack extends OutputStack {
     this.outputSSM(
       config.app.name(`${Tables.ProjectDeployments}SSM`),
       config.ssm.tables.projectDeployments.tableArn,
-      projectDeployments.tableArn,
+      projectDeployments.tableArn
     );
     this.outputSSM(
       config.app.name(`${Tables.ProjectDeployments}StreamSSM`),
       config.ssm.tables.projectDeployments.streamArn,
-      projectDeployments.tableStreamArn!,
+      projectDeployments.tableStreamArn!
     );
   }
 
@@ -80,7 +83,11 @@ export class TablesStack extends OutputStack {
     const tableArn = StringParameter.fromStringParameterName(
       scope,
       `${table}TableArn`,
-      config.ssm.tables[`${table[0].toLowerCase()}${table.substring(1)}` as keyof typeof config.ssm.tables].tableArn
+      config.ssm.tables[
+        `${table[0].toLowerCase()}${table.substring(
+          1
+        )}` as keyof typeof config.ssm.tables
+      ].tableArn
     ).stringValue;
 
     return Table.fromTableArn(scope, `${table}Table`, tableArn);
@@ -90,13 +97,20 @@ export class TablesStack extends OutputStack {
     const tableArn = StringParameter.fromStringParameterName(
       scope,
       `${table}TableArn`,
-      config.ssm.tables[`${table[0].toLowerCase()}${table.substring(1)}` as keyof typeof config.ssm.tables].tableArn
+      config.ssm.tables[
+        `${table[0].toLowerCase()}${table.substring(
+          1
+        )}` as keyof typeof config.ssm.tables
+      ].tableArn
     ).stringValue;
     const tableStreamArn = StringParameter.fromStringParameterName(
       scope,
       `${table}StreamArn`,
-      config.ssm.tables[`${table[0].toLowerCase()}${table.substring(1)}` as keyof typeof config.ssm.tables]
-        .streamArn
+      config.ssm.tables[
+        `${table[0].toLowerCase()}${table.substring(
+          1
+        )}` as keyof typeof config.ssm.tables
+      ].streamArn
     ).stringValue;
 
     return Table.fromTableAttributes(scope, `${table}Table`, {
