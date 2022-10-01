@@ -187,10 +187,7 @@ impl HandlerUpdate<bool, ProjectDeploymentUpdatePayload, HandlerError>
         payload: ProjectDeploymentUpdatePayload,
     ) -> Result<(), Report<HandlerError>> {
         info!("ProjectDeploymentsHandler::update - uuid: {}", uuid);
-        info!(
-            "ProjectDeploymentsHandler::update - payload: {:#?}",
-            payload
-        );
+        info!("ProjectDeploymentsHandler::update - payload: {:?}", payload);
         let expressions = self.get_update_expressions(payload);
 
         let tx = self
@@ -208,7 +205,7 @@ impl HandlerUpdate<bool, ProjectDeploymentUpdatePayload, HandlerError>
         info!("ProjectDeploymentsHandler::update - send tx");
         let result = tx.send().await;
         info!(
-            "ProjectDeploymentsHandler::update - tx response: {:#?}",
+            "ProjectDeploymentsHandler::update - tx response: {:?}",
             result
         );
 
