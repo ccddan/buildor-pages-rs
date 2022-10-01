@@ -577,6 +577,7 @@ name = "codebuild-events-processing"
 version = "0.1.0"
 dependencies = [
  "buildor",
+ "chrono",
  "env_logger",
  "error-stack",
  "lambda_runtime",
